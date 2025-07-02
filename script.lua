@@ -80,11 +80,10 @@
         if CloseButton then
             CloseButton.BackgroundTransparency = 1
             CloseButton.BackgroundColor3 = Color3.new(0,0,0)
-            CloseButton.Text = "✕"
-            CloseButton.TextSize = 24
-            CloseButton.TextColor3 = Color3.fromRGB(255,255,255)
-            CloseButton.Size = UDim2.new(0, 40, 0, 40)
-            CloseButton.Position = UDim2.new(1, -45, 0, 5)
+            CloseButton.Text = "×"
+            CloseButton.Font = Enum.Font.Gotham
+            CloseButton.TextSize = 22
+            CloseButton.TextColor3 = Color3.fromRGB(220,220,220)
             CloseButton.BorderSizePixel = 0
             for _, child in ipairs(CloseButton:GetChildren()) do
                 if child:IsA("UIPadding") or child:IsA("UICorner") then child:Destroy() end
@@ -520,3 +519,9 @@
         end
 
         RunService:BindToRenderStep("ESP", Enum.RenderPriority.Camera.Value + 1, updateESP)
+
+        -- Use thin font for all headers and buttons
+        Title.Font = Enum.Font.Gotham
+        for _, btn in pairs(TabButtons) do
+            btn.Font = Enum.Font.Gotham
+        end
