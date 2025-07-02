@@ -610,7 +610,7 @@ end
 ButtonLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvasSize)
 updateCanvasSize()
 
--- Drag functionality
+-- DRAGOWANIE OKNA (HeaderFrame)
 local dragging = false
 local dragInput, dragStart, startPos
 
@@ -625,7 +625,6 @@ HeaderFrame.InputBegan:Connect(function(input)
         dragging = true
         dragStart = input.Position
         startPos = MainFrame.Position
-
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
@@ -646,12 +645,7 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- Close button functionality
-CloseButton.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-end)
-
--- Minimalizacja
+-- Minimalizacja i ContentFrame
 local isMinimized = false
 MinimizeButton.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
@@ -664,6 +658,11 @@ MinimizeButton.MouseButton1Click:Connect(function()
         MinimizeButton.Text = "-"
         MainFrame.Size = UDim2.new(0, 450, 0, 320)
     end
+end)
+
+-- Przycisk zamknięcia
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
 end)
 
 -- Scrollowanie działa domyślnie przez ScrollingFrame (ContentFrame)
