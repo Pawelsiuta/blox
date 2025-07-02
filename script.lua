@@ -23,7 +23,7 @@
         MainFrame.Name = "MainFrame"
         MainFrame.Size = UDim2.new(0, 450, 0, 320)
         MainFrame.Position = UDim2.new(0.5, -225, 0.5, -160)
-        MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+        MainFrame.BackgroundColor3 = Color3.fromRGB(24, 26, 34)
         MainFrame.BorderSizePixel = 0
         MainFrame.Parent = ScreenGui
         MainFrame.ClipsDescendants = true
@@ -48,14 +48,14 @@
         HeaderFrame.Name = "Header"
         HeaderFrame.Size = UDim2.new(1, 0, 0, 50)
         HeaderFrame.Position = UDim2.new(0, 0, 0, 0)
-        HeaderFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+        HeaderFrame.BackgroundColor3 = Color3.fromRGB(24, 26, 34)
         HeaderFrame.BorderSizePixel = 0
         HeaderFrame.Parent = MainFrame
 
         -- Tytuł
         local Title = Instance.new("TextLabel")
         Title.Name = "Title"
-        Title.Text = "ARSENAL HUB"
+        Title.Text = "Aetheris"
         Title.Size = UDim2.new(1, -100, 1, 0)
         Title.Position = UDim2.new(0, 20, 0, 0)
         Title.BackgroundTransparency = 1
@@ -77,7 +77,19 @@
         CloseButton.BorderSizePixel = 0
         CloseButton.Parent = HeaderFrame
 
-        if CloseButton then CloseButton.BackgroundTransparency = 1; CloseButton.BackgroundColor3 = Color3.new(0,0,0) end
+        if CloseButton then
+            CloseButton.BackgroundTransparency = 1
+            CloseButton.BackgroundColor3 = Color3.new(0,0,0)
+            CloseButton.Text = "✕"
+            CloseButton.TextSize = 24
+            CloseButton.TextColor3 = Color3.fromRGB(255,255,255)
+            CloseButton.Size = UDim2.new(0, 40, 0, 40)
+            CloseButton.Position = UDim2.new(1, -45, 0, 5)
+            CloseButton.BorderSizePixel = 0
+            for _, child in ipairs(CloseButton:GetChildren()) do
+                if child:IsA("UIPadding") or child:IsA("UICorner") then child:Destroy() end
+            end
+        end
 
         -- Przycisk minimalizacji
         local MinimizeButton = Instance.new("TextButton")
