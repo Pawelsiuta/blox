@@ -317,11 +317,14 @@ local aimbotFOV = 60
 local aimbotHeadOnly = false
 
 btnAimbot.MouseButton1Click:Connect(function()
-    AimbotMenu.Visible = not AimbotMenu.Visible
     if AimbotMenu.Visible then
-        updateStatus("Aimbot menu opened")
-    else
+        AimbotMenu.Visible = false
         updateStatus("Aimbot menu closed")
+    else
+        local btn = btnAimbot.Parent
+        AimbotMenu.Position = UDim2.new(0, btn.Position.X.Offset, 0, btn.Position.Y.Offset + btn.Size.Y.Offset + 10)
+        AimbotMenu.Visible = true
+        updateStatus("Aimbot menu opened")
     end
 end)
 
@@ -445,29 +448,63 @@ local isMinimized = false
 MinimizeButton.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
     if isMinimized then
-        local tween = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
-            Size = UDim2.new(0, 450, 0, 50)
-        })
-        tween:Play()
-        tween.Completed:Connect(function()
-            MainFrame.Visible = false
-            MinimizeButton.Text = "+"
-        end)
+        for _, child in pairs(MainFrame:GetChildren()) do
+            if child ~= HeaderFrame then
+                child.Visible = false
+            end
+        end
+        MainFrame.Size = UDim2.new(0, 450, 0, 50)
+        MinimizeButton.Text = "+"
     else
-        MainFrame.Visible = true
-        local tween = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
-            Size = UDim2.new(0, 450, 0, 320)
-        })
-        tween:Play()
+        for _, child in pairs(MainFrame:GetChildren()) do
+            child.Visible = true
+        end
+        MainFrame.Size = UDim2.new(0, 450, 0, 320)
         MinimizeButton.Text = "-"
     end
 end)
 
--- Fast Fire System
+-- Checkbox utility
+local function createCheckbox(parent, checked, callback)
+    local box = Instance.new("Frame")
+    box.Size = UDim2.new(0, 24, 0, 24)
+    box.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    box.BorderSizePixel = 2
+    box.BorderColor3 = Color3.fromRGB(255,255,255)
+    box.Parent = parent
+    local mark = Instance.new("Frame")
+    mark.Size = UDim2.new(1, -8, 1, -8)
+    mark.Position = UDim2.new(0, 4, 0, 4)
+    mark.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    mark.Visible = checked
+    mark.Parent = box
+    box.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            checked = not checked
+            mark.Visible = checked
+            callback(checked)
+        end
+    end)
+    return box, function(val) checked = val; mark.Visible = val end
+end
+
+-- Fast Fire z checkboxem
+local fastFireEnabled = false
 local fastFireThread
-btnFastFire.MouseButton1Click:Connect(function()
-    fastFireEnabled = not fastFireEnabled
-    btnFastFire.Text = "Fast Fire: " .. (fastFireEnabled and "ON" or "OFF")
+local fastFireFrame = btnFastFire.Parent
+for _, v in pairs(fastFireFrame:GetChildren()) do if v:IsA('TextLabel') or v:IsA('TextButton') then v.Visible = false end end
+local fastFireLabel = Instance.new("TextLabel")
+fastFireLabel.Text = "Fast Fire"
+fastFireLabel.Size = UDim2.new(1, -30, 1, 0)
+fastFireLabel.Position = UDim2.new(0, 30, 0, 0)
+fastFireLabel.BackgroundTransparency = 1
+fastFireLabel.TextColor3 = Color3.fromRGB(255,255,255)
+fastFireLabel.Font = Enum.Font.GothamBold
+fastFireLabel.TextSize = 18
+fastFireLabel.TextXAlignment = Enum.TextXAlignment.Left
+fastFireLabel.Parent = fastFireFrame
+local fastFireCheckbox, setFastFire = createCheckbox(fastFireFrame, false, function(state)
+    fastFireEnabled = state
     if fastFireEnabled then
         updateStatus("Fast Fire activated")
         if fastFireThread and coroutine.status(fastFireThread) ~= "dead" then
@@ -494,6 +531,8 @@ btnFastFire.MouseButton1Click:Connect(function()
         fastFireEnabled = false
     end
 end)
+fastFireCheckbox.Position = UDim2.new(0, 0, 0, 10)
+fastFireCheckbox.Parent = fastFireFrame
 
 -- Infinite Ammo System
 local infAmmoConnection
@@ -785,11 +824,23 @@ btnESP.MouseButton1Click:Connect(function()
     end
 end)
 
--- No Recoil System
+-- No Recoil z checkboxem
+local noRecoilEnabled = false
 local noRecoilThread
-btnNoRecoil.MouseButton1Click:Connect(function()
-    noRecoilEnabled = not noRecoilEnabled
-    btnNoRecoil.Text = "No Recoil: " .. (noRecoilEnabled and "ON" or "OFF")
+local noRecoilFrame = btnNoRecoil.Parent
+for _, v in pairs(noRecoilFrame:GetChildren()) do if v:IsA('TextLabel') or v:IsA('TextButton') then v.Visible = false end end
+local noRecoilLabel = Instance.new("TextLabel")
+noRecoilLabel.Text = "No Recoil"
+noRecoilLabel.Size = UDim2.new(1, -30, 1, 0)
+noRecoilLabel.Position = UDim2.new(0, 30, 0, 0)
+noRecoilLabel.BackgroundTransparency = 1
+noRecoilLabel.TextColor3 = Color3.fromRGB(255,255,255)
+noRecoilLabel.Font = Enum.Font.GothamBold
+noRecoilLabel.TextSize = 18
+noRecoilLabel.TextXAlignment = Enum.TextXAlignment.Left
+noRecoilLabel.Parent = noRecoilFrame
+local noRecoilCheckbox, setNoRecoil = createCheckbox(noRecoilFrame, false, function(state)
+    noRecoilEnabled = state
     if noRecoilEnabled then
         updateStatus("No Recoil activated")
         if noRecoilThread and coroutine.status(noRecoilThread) ~= "dead" then
@@ -818,6 +869,8 @@ btnNoRecoil.MouseButton1Click:Connect(function()
         noRecoilEnabled = false
     end
 end)
+noRecoilCheckbox.Position = UDim2.new(0, 0, 0, 10)
+noRecoilCheckbox.Parent = noRecoilFrame
 
 -- Keyboard shortcut (F1 to toggle GUI)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
