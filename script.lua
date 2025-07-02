@@ -37,10 +37,6 @@
         MainGradient.Rotation = 45
         MainGradient.Parent = MainFrame
 
-        local MainCorner = Instance.new("UICorner")
-        MainCorner.CornerRadius = UDim.new(0, 12)
-        MainCorner.Parent = MainFrame
-
         -- Stroke (ramka)
         local MainStroke = Instance.new("UIStroke")
         MainStroke.Color = Color3.fromRGB(60, 60, 80)
@@ -55,10 +51,6 @@
         HeaderFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
         HeaderFrame.BorderSizePixel = 0
         HeaderFrame.Parent = MainFrame
-
-        local HeaderCorner = Instance.new("UICorner")
-        HeaderCorner.CornerRadius = UDim.new(0, 12)
-        HeaderCorner.Parent = HeaderFrame
 
         -- Tytuł
         local Title = Instance.new("TextLabel")
@@ -79,16 +71,13 @@
         CloseButton.Text = "✕"
         CloseButton.Size = UDim2.new(0, 40, 0, 40)
         CloseButton.Position = UDim2.new(1, -45, 0, 5)
-        CloseButton.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
         CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
         CloseButton.Font = Enum.Font.GothamBold
         CloseButton.TextSize = 16
         CloseButton.BorderSizePixel = 0
         CloseButton.Parent = HeaderFrame
 
-        local CloseCorner = Instance.new("UICorner")
-        CloseCorner.CornerRadius = UDim.new(0, 8)
-        CloseCorner.Parent = CloseButton
+        if CloseButton then CloseButton.BackgroundTransparency = 1; CloseButton.BackgroundColor3 = Color3.new(0,0,0) end
 
         -- Przycisk minimalizacji
         local MinimizeButton = Instance.new("TextButton")
@@ -96,16 +85,13 @@
         MinimizeButton.Text = "−"
         MinimizeButton.Size = UDim2.new(0, 40, 0, 40)
         MinimizeButton.Position = UDim2.new(1, -90, 0, 5)
-        MinimizeButton.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
         MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
         MinimizeButton.Font = Enum.Font.GothamBold
         MinimizeButton.TextSize = 20
         MinimizeButton.BorderSizePixel = 0
         MinimizeButton.Parent = HeaderFrame
 
-        local MinimizeCorner = Instance.new("UICorner")
-        MinimizeCorner.CornerRadius = UDim.new(0, 8)
-        MinimizeCorner.Parent = MinimizeButton
+        if MinimizeButton then MinimizeButton.BackgroundTransparency = 1; MinimizeButton.BackgroundColor3 = Color3.new(0,0,0) end
 
         -- Drag functionality
         local dragging = false
