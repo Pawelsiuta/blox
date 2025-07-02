@@ -172,10 +172,16 @@
         -- Main: header in rounded blue rectangle, options in dark rounded rectangles, sliders blue on dark, all text white/light gray, Gotham Bold
 
         -- Remove old GUI elements
-        if TabFrame then TabFrame:Destroy() end
-        if Sidebar then Sidebar:Destroy() end
-        if ContentArea then ContentArea:Destroy() end
-        for _, tab in pairs(Tabs or {}) do if tab then tab:Destroy() end end
+        if ContentFrame then ContentFrame:Destroy() end
+        if ButtonLayout then ButtonLayout:Destroy() end
+        if ContentPadding then ContentPadding:Destroy() end
+        if StatusFrame then StatusFrame:Destroy() end
+        if StatusLabel then StatusLabel:Destroy() end
+        if btnFastFire then btnFastFire:Destroy() end
+        if btnInfAmmo then btnInfAmmo:Destroy() end
+        if btnEnemyFollow then btnEnemyFollow:Destroy() end
+        if btnESP then btnESP:Destroy() end
+        if btnNoRecoil then btnNoRecoil:Destroy() end
 
         -- Sidebar
         local Sidebar = Instance.new("Frame")
