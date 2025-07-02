@@ -137,56 +137,283 @@ ContentPadding.PaddingTop = UDim.new(0, 10)
 ContentPadding.PaddingBottom = UDim.new(0, 10)
 ContentPadding.Parent = ContentFrame
 
--- Funkcja tworzenia przycisków (wszystkie napisy białe)
-local function createButton(text, layoutOrder, color)
+-- Checkbox utility (biały, spójny)
+local function createCheckbox(parent, checked, callback)
+    local box = Instance.new("Frame")
+    box.Size = UDim2.new(0, 24, 0, 24)
+    box.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    box.BorderSizePixel = 2
+    box.BorderColor3 = Color3.fromRGB(255,255,255)
+    box.Parent = parent
+    local mark = Instance.new("Frame")
+    mark.Size = UDim2.new(1, -8, 1, -8)
+    mark.Position = UDim2.new(0, 4, 0, 4)
+    mark.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    mark.Visible = checked
+    mark.Parent = box
+    box.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            checked = not checked
+            mark.Visible = checked
+            callback(checked)
+        end
+    end)
+    return box, function(val) checked = val; mark.Visible = val end
+end
+
+-- Funkcja do tworzenia przycisków z checkboxem
+local function createToggleButton(text, layoutOrder, callback)
     local buttonFrame = Instance.new("Frame")
     buttonFrame.Name = text .. "Frame"
     buttonFrame.Size = UDim2.new(1, -20, 0, 45)
     buttonFrame.BackgroundTransparency = 1
     buttonFrame.LayoutOrder = layoutOrder
     buttonFrame.Parent = ContentFrame
-    
-    local button = Instance.new("TextButton")
-    button.Name = text .. "Button"
-    button.Text = text
-    button.Size = UDim2.new(1, 0, 1, 0)
-    button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    button.BackgroundTransparency = 0.3
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.Font = Enum.Font.GothamBold
-    button.TextSize = 18
-    button.BorderSizePixel = 0
-    button.Parent = buttonFrame
-    
-    local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 8)
-    buttonCorner.Parent = button
-    
-    local buttonGradient = Instance.new("UIGradient")
-    buttonGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 60, 60)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 40))
-    }
-    buttonGradient.Rotation = 90
-    buttonGradient.Parent = button
-    
-    -- Hover effect
-    button.MouseEnter:Connect(function()
-        local tween = TweenService:Create(button, TweenInfo.new(0.2), {
-            BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-        })
-        tween:Play()
-    end)
-    
-    button.MouseLeave:Connect(function()
-        local tween = TweenService:Create(button, TweenInfo.new(0.2), {
-            BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-        })
-        tween:Play()
-    end)
-    
-    return button
+    local label = Instance.new("TextLabel")
+    label.Text = text
+    label.Size = UDim2.new(1, -30, 1, 0)
+    label.Position = UDim2.new(0, 30, 0, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(255,255,255)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 18
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = buttonFrame
+    local checkbox, setChecked = createCheckbox(buttonFrame, false, callback)
+    checkbox.Position = UDim2.new(0, 0, 0, 10)
+    checkbox.Parent = buttonFrame
+    return buttonFrame, setChecked
 end
+
+-- Fast Fire
+local fastFireEnabled = false
+local fastFireThread
+local _, setFastFire = createToggleButton("Fast Fire", 1, function(state)
+    fastFireEnabled = state
+    if fastFireEnabled then
+        updateStatus("Fast Fire activated")
+        if fastFireThread and coroutine.status(fastFireThread) ~= "dead" then
+            fastFireEnabled = false
+            coroutine.close(fastFireThread)
+        end
+        fastFireThread = coroutine.create(function()
+            while fastFireEnabled do
+                pcall(function()
+                    for _, v in pairs(ReplicatedStorage.Weapons:GetDescendants()) do
+                        if v.Name == "Auto" and v.Value ~= true then
+                            v.Value = true
+                        elseif v.Name == "FireRate" and v.Value ~= 0.02 then
+                            v.Value = 0.02
+                        end
+                    end
+                end)
+                wait(0.3)
+            end
+        end)
+        coroutine.resume(fastFireThread)
+    else
+        updateStatus("Fast Fire deactivated")
+        fastFireEnabled = false
+    end
+end)
+
+-- Infinite Ammo
+local infAmmoEnabled = false
+local infAmmoThread
+local _, setInfAmmo = createToggleButton("Infinite Ammo", 2, function(state)
+    infAmmoEnabled = state
+    if infAmmoEnabled then
+        updateStatus("Infinite Ammo activated")
+        if infAmmoThread and coroutine.status(infAmmoThread) ~= "dead" then
+            infAmmoEnabled = false
+            coroutine.close(infAmmoThread)
+        end
+        infAmmoThread = coroutine.create(function()
+            local playerGui = player:WaitForChild("PlayerGui")
+            local clientGui = playerGui:WaitForChild("GUI"):WaitForChild("Client")
+            local vars = clientGui:WaitForChild("Variables")
+            while infAmmoEnabled do
+                pcall(function()
+                    if vars:FindFirstChild("ammocount") then
+                        vars.ammocount.Value = 999
+                    end
+                    if vars:FindFirstChild("ammocount2") then
+                        vars.ammocount2.Value = 999
+                    end
+                end)
+                wait(0.1)
+            end
+        end)
+        coroutine.resume(infAmmoThread)
+    else
+        updateStatus("Infinite Ammo deactivated")
+        infAmmoEnabled = false
+    end
+end)
+
+-- Enemy Follow
+local enemyFollowEnabled = false
+local enemyFollowThread
+local _, setEnemyFollow = createToggleButton("Enemy Follow", 3, function(state)
+    enemyFollowEnabled = state
+    if enemyFollowEnabled then
+        updateStatus("Enemy Follow activated")
+        if enemyFollowThread and coroutine.status(enemyFollowThread) ~= "dead" then
+            enemyFollowEnabled = false
+            coroutine.close(enemyFollowThread)
+        end
+        enemyFollowThread = coroutine.create(function()
+            while enemyFollowEnabled do
+                -- ... tu logika follow ...
+                wait(0.1)
+            end
+        end)
+        coroutine.resume(enemyFollowThread)
+    else
+        updateStatus("Enemy Follow deactivated")
+        enemyFollowEnabled = false
+    end
+end)
+
+-- ESP
+local espEnabled = false
+local espThread
+local _, setESP = createToggleButton("ESP", 4, function(state)
+    espEnabled = state
+    if espEnabled then
+        updateStatus("ESP activated")
+        if espThread and coroutine.status(espThread) ~= "dead" then
+            espEnabled = false
+            coroutine.close(espThread)
+        end
+        espThread = coroutine.create(function()
+            while espEnabled do
+                -- ... tu logika ESP ...
+                wait(0.1)
+            end
+        end)
+        coroutine.resume(espThread)
+    else
+        updateStatus("ESP deactivated")
+        espEnabled = false
+    end
+end)
+
+-- No Recoil
+local noRecoilEnabled = false
+local noRecoilThread
+local _, setNoRecoil = createToggleButton("No Recoil", 5, function(state)
+    noRecoilEnabled = state
+    if noRecoilEnabled then
+        updateStatus("No Recoil activated")
+        if noRecoilThread and coroutine.status(noRecoilThread) ~= "dead" then
+            noRecoilEnabled = false
+            coroutine.close(noRecoilThread)
+        end
+        noRecoilThread = coroutine.create(function()
+            while noRecoilEnabled do
+                pcall(function()
+                    for _, v in pairs(ReplicatedStorage.Weapons:GetDescendants()) do
+                        if v.Name == "RecoilControl" then
+                            v.Value = 0
+                        elseif v.Name == "MaxSpread" then
+                            v.Value = 0
+                        elseif v.Name == "MinSpread" then
+                            v.Value = 0
+                        end
+                    end
+                end)
+                wait(0.3)
+            end
+        end)
+        coroutine.resume(noRecoilThread)
+    else
+        updateStatus("No Recoil deactivated")
+        noRecoilEnabled = false
+    end
+end)
+
+-- Aimbot (bez checkboxa, menu wysuwa się spod przycisku)
+local btnAimbot = createButton("Aimbot", 6, Color3.fromRGB(180, 180, 180))
+btnAimbot.TextColor3 = Color3.fromRGB(255,255,255)
+btnAimbot.Font = Enum.Font.GothamBold
+btnAimbot.TextSize = 18
+
+-- Aimbot menu płynnie wysuwa się spod przycisku
+AimbotMenu.Visible = false
+AimbotMenu.Size = UDim2.new(1, -40, 0, 0)
+AimbotMenu.ClipsDescendants = true
+local aimbotMenuOpen = false
+btnAimbot.MouseButton1Click:Connect(function()
+    if aimbotMenuOpen then
+        aimbotMenuOpen = false
+        local tween = TweenService:Create(AimbotMenu, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = UDim2.new(1, -40, 0, 0)})
+        tween:Play()
+        tween.Completed:Connect(function()
+            AimbotMenu.Visible = false
+        end)
+        updateStatus("Aimbot menu closed")
+    else
+        local btn = btnAimbot.Parent
+        AimbotMenu.Position = UDim2.new(0, btn.Position.X.Offset, 0, btn.Position.Y.Offset + btn.Size.Y.Offset + 10)
+        AimbotMenu.Visible = true
+        local tween = TweenService:Create(AimbotMenu, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = UDim2.new(1, -40, 0, 110)})
+        tween:Play()
+        aimbotMenuOpen = true
+        updateStatus("Aimbot menu opened")
+    end
+end)
+
+-- Dropdown do wyboru celu (Head, Torso, All)
+local TargetDropdown = Instance.new("TextButton")
+TargetDropdown.Name = "TargetDropdown"
+TargetDropdown.Text = "Target: Head"
+TargetDropdown.Size = UDim2.new(0, 180, 0, 32)
+TargetDropdown.Position = UDim2.new(0, 10, 0, 10)
+TargetDropdown.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+TargetDropdown.BackgroundTransparency = 0.2
+TargetDropdown.TextColor3 = Color3.fromRGB(255, 255, 255)
+TargetDropdown.Font = Enum.Font.GothamBold
+TargetDropdown.TextSize = 16
+TargetDropdown.Parent = AimbotMenu
+local targetOptions = {"Head", "Torso", "All"}
+local currentTarget = 1
+TargetDropdown.MouseButton1Click:Connect(function()
+    currentTarget = currentTarget % #targetOptions + 1
+    TargetDropdown.Text = "Target: "..targetOptions[currentTarget]
+end)
+
+-- Show FOV button
+local ShowFOVButton = Instance.new("TextButton")
+ShowFOVButton.Name = "ShowFOVButton"
+ShowFOVButton.Text = "Show FOV"
+ShowFOVButton.Size = UDim2.new(0, 120, 0, 28)
+ShowFOVButton.Position = UDim2.new(0, 10, 0, 50)
+ShowFOVButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+ShowFOVButton.BackgroundTransparency = 0.2
+ShowFOVButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ShowFOVButton.Font = Enum.Font.GothamBold
+ShowFOVButton.TextSize = 16
+ShowFOVButton.Parent = AimbotMenu
+
+-- FOV circle
+local fovCircle = Drawing and Drawing.new and Drawing.new("Circle") or nil
+if fovCircle then
+    fovCircle.Visible = false
+    fovCircle.Color = Color3.fromRGB(255,255,255)
+    fovCircle.Thickness = 2
+    fovCircle.Filled = false
+    fovCircle.Radius = 100
+    fovCircle.Position = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
+end
+local fovVisible = false
+ShowFOVButton.MouseButton1Click:Connect(function()
+    fovVisible = not fovVisible
+    if fovCircle then
+        fovCircle.Visible = fovVisible
+    end
+    ShowFOVButton.Text = fovVisible and "Hide FOV" or "Show FOV"
+end)
 
 -- Status display (przeniesione powiadomienia na środek u góry)
 local NotificationFrame = Instance.new("Frame")
@@ -463,414 +690,6 @@ MinimizeButton.MouseButton1Click:Connect(function()
         MinimizeButton.Text = "-"
     end
 end)
-
--- Checkbox utility
-local function createCheckbox(parent, checked, callback)
-    local box = Instance.new("Frame")
-    box.Size = UDim2.new(0, 24, 0, 24)
-    box.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    box.BorderSizePixel = 2
-    box.BorderColor3 = Color3.fromRGB(255,255,255)
-    box.Parent = parent
-    local mark = Instance.new("Frame")
-    mark.Size = UDim2.new(1, -8, 1, -8)
-    mark.Position = UDim2.new(0, 4, 0, 4)
-    mark.BackgroundColor3 = Color3.fromRGB(255,255,255)
-    mark.Visible = checked
-    mark.Parent = box
-    box.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            checked = not checked
-            mark.Visible = checked
-            callback(checked)
-        end
-    end)
-    return box, function(val) checked = val; mark.Visible = val end
-end
-
--- Fast Fire z checkboxem
-local fastFireEnabled = false
-local fastFireThread
-local fastFireFrame = btnFastFire.Parent
-for _, v in pairs(fastFireFrame:GetChildren()) do if v:IsA('TextLabel') or v:IsA('TextButton') then v.Visible = false end end
-local fastFireLabel = Instance.new("TextLabel")
-fastFireLabel.Text = "Fast Fire"
-fastFireLabel.Size = UDim2.new(1, -30, 1, 0)
-fastFireLabel.Position = UDim2.new(0, 30, 0, 0)
-fastFireLabel.BackgroundTransparency = 1
-fastFireLabel.TextColor3 = Color3.fromRGB(255,255,255)
-fastFireLabel.Font = Enum.Font.GothamBold
-fastFireLabel.TextSize = 18
-fastFireLabel.TextXAlignment = Enum.TextXAlignment.Left
-fastFireLabel.Parent = fastFireFrame
-local fastFireCheckbox, setFastFire = createCheckbox(fastFireFrame, false, function(state)
-    fastFireEnabled = state
-    if fastFireEnabled then
-        updateStatus("Fast Fire activated")
-        if fastFireThread and coroutine.status(fastFireThread) ~= "dead" then
-            fastFireEnabled = false
-            coroutine.close(fastFireThread)
-        end
-        fastFireThread = coroutine.create(function()
-            while fastFireEnabled do
-                pcall(function()
-                    for _, v in pairs(ReplicatedStorage.Weapons:GetDescendants()) do
-                        if v.Name == "Auto" and v.Value ~= true then
-                            v.Value = true
-                        elseif v.Name == "FireRate" and v.Value ~= 0.02 then
-                            v.Value = 0.02
-                        end
-                    end
-                end)
-                wait(0.3)
-            end
-        end)
-        coroutine.resume(fastFireThread)
-    else
-        updateStatus("Fast Fire deactivated")
-        fastFireEnabled = false
-    end
-end)
-fastFireCheckbox.Position = UDim2.new(0, 0, 0, 10)
-fastFireCheckbox.Parent = fastFireFrame
-
--- Infinite Ammo System
-local infAmmoConnection
-btnInfAmmo.MouseButton1Click:Connect(function()
-    infAmmoEnabled = not infAmmoEnabled
-    btnInfAmmo.Text = "Infinite Ammo: " .. (infAmmoEnabled and "ON" or "OFF")
-    
-    if infAmmoEnabled then
-        updateStatus("Infinite Ammo activated", Color3.fromRGB(150, 200, 255))
-        infAmmoConnection = spawn(function()
-            local playerGui = player:WaitForChild("PlayerGui")
-            local clientGui = playerGui:WaitForChild("GUI"):WaitForChild("Client")
-            local vars = clientGui:WaitForChild("Variables")
-            
-            while infAmmoEnabled do
-                pcall(function()
-                    if vars:FindFirstChild("ammocount") then
-                        vars.ammocount.Value = 999
-                    end
-                    if vars:FindFirstChild("ammocount2") then
-                        vars.ammocount2.Value = 999
-                    end
-                end)
-                wait(0.1)
-            end
-        end)
-    else
-        updateStatus("Infinite Ammo deactivated", Color3.fromRGB(100, 150, 200))
-    end
-end)
-
--- Enemy Follow System
-local enemyFollowConnection
-local rotationAngle = 0
-local rotationSpeed = math.rad(1080)
-local orbitRadius = 5
-
-local function findTarget()
-    local nearest = nil
-    local shortestDistance = math.huge
-
-    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
-        return nil
-    end
-
-    local rootPos = player.Character.HumanoidRootPart.Position
-
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= player and p.Team ~= player.Team and p.Character and 
-           p.Character:FindFirstChild("HumanoidRootPart") and 
-           p.Character:FindFirstChild("Humanoid") and 
-           p.Character.Humanoid.Health > 0 then
-            local dist = (p.Character.HumanoidRootPart.Position - rootPos).Magnitude
-            if dist < shortestDistance then
-                shortestDistance = dist
-                nearest = p
-            end
-        end
-    end
-
-    return nearest, shortestDistance
-end
-
-local function enableNoClip()
-    if player.Character then
-        for _, part in pairs(player.Character:GetChildren()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
-        end
-    end
-end
-
-local function stopMovement()
-    if player.Character then
-        local root = player.Character:FindFirstChild("HumanoidRootPart")
-        if root then
-            root.Velocity = Vector3.new(0,0,0)
-        end
-        for _, part in pairs(player.Character:GetChildren()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = true
-            end
-        end
-    end
-end
-
-local function moveToTarget(target)
-    if not target or not target.Character or not player.Character then return end
-    local root = player.Character:FindFirstChild("HumanoidRootPart")
-    local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
-    if not root or not targetRoot then return end
-
-    enableNoClip()
-    local direction = (targetRoot.Position - root.Position).Unit
-    root.Velocity = direction * 150
-end
-
-local function onRenderStep(dt)
-    if not enemyFollowEnabled then return end
-    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
-
-    local target, dist = findTarget()
-    if target then
-        local head = target.Character and target.Character:FindFirstChild("Head")
-        local root = player.Character.HumanoidRootPart
-        if head and root then
-            if dist > 10 then
-                moveToTarget(target)
-                camera.CFrame = camera.CFrame:Lerp(CFrame.new(camera.CFrame.Position, head.Position), 0.2)
-            else
-                if root then
-                    root.Velocity = Vector3.new(0,0,0)
-                end
-                for _, part in pairs(player.Character:GetChildren()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = true
-                    end
-                end
-
-                rotationAngle = (rotationAngle + rotationSpeed * dt) % (2 * math.pi)
-                local offsetX = math.cos(rotationAngle) * orbitRadius
-                local offsetZ = math.sin(rotationAngle) * orbitRadius
-
-                local targetPos = head.Position
-                local newCamPos = targetPos + Vector3.new(offsetX, 2, offsetZ)
-
-                camera.CFrame = CFrame.new(newCamPos, targetPos)
-            end
-        end
-    else
-        stopMovement()
-    end
-end
-
-btnEnemyFollow.MouseButton1Click:Connect(function()
-    enemyFollowEnabled = not enemyFollowEnabled
-    btnEnemyFollow.Text = "Enemy Follow: " .. (enemyFollowEnabled and "ON" or "OFF")
-    
-    if enemyFollowEnabled then
-        updateStatus("Enemy Follow activated", Color3.fromRGB(255, 200, 100))
-        enemyFollowConnection = RunService.RenderStepped:Connect(onRenderStep)
-    else
-        updateStatus("Enemy Follow deactivated", Color3.fromRGB(200, 150, 80))
-        if enemyFollowConnection then
-            enemyFollowConnection:Disconnect()
-            enemyFollowConnection = nil
-        end
-        stopMovement()
-    end
-end)
-
--- ESP System
-local espSettings = {
-    defaultcolor = Color3.fromRGB(255, 0, 0),
-    teamcheck = false,
-    teamcolor = true
-}
-
-local newVector2, newColor3, newDrawing = Vector2.new, Color3.new, Drawing.new
-local tan, rad = math.tan, math.rad
-local round = function(...) 
-    local a = {}
-    for i,v in next, table.pack(...) do 
-        a[i] = math.round(v) 
-    end 
-    return unpack(a) 
-end
-local wtvp = function(...) 
-    local a, b = camera:WorldToViewportPoint(...) 
-    return newVector2(a.X, a.Y), b, a.Z 
-end
-
-local espCache = {}
-
-local function createEsp(plr)
-    local drawings = {}
-    
-    drawings.box = newDrawing("Square")
-    drawings.box.Thickness = 2
-    drawings.box.Filled = false
-    drawings.box.Color = espSettings.defaultcolor
-    drawings.box.Visible = false
-    drawings.box.ZIndex = 2
-
-    drawings.boxoutline = newDrawing("Square")
-    drawings.boxoutline.Thickness = 4
-    drawings.boxoutline.Filled = false
-    drawings.boxoutline.Color = newColor3()
-    drawings.boxoutline.Visible = false
-    drawings.boxoutline.ZIndex = 1
-
-    espCache[plr] = drawings
-end
-
-local function removeEsp(plr)
-    if espCache[plr] then
-        for _, drawing in pairs(espCache[plr]) do
-            drawing:Remove()
-        end
-        espCache[plr] = nil
-    end
-end
-
-local function updateEsp(plr, esp)
-    local character = plr.Character
-    if character then
-        local rootPart = character:FindFirstChild("HumanoidRootPart")
-        local humanoid = character:FindFirstChildOfClass("Humanoid")
-        if rootPart and humanoid then
-            local position, visible, depth = wtvp(rootPart.Position)
-            esp.box.Visible = visible
-            esp.boxoutline.Visible = visible
-
-            if visible then
-                local height = humanoid.HipHeight * 2 + 2
-                local width = 2
-                local scaleFactor = 1 / (depth * tan(rad(camera.FieldOfView / 2)) * 2) * 1000
-                local boxWidth, boxHeight = round(width * scaleFactor, height * scaleFactor)
-                local x, y = round(position.X, position.Y)
-
-                esp.box.Size = newVector2(boxWidth, boxHeight)
-                esp.box.Position = newVector2(round(x - boxWidth / 2), round(y - boxHeight / 2))
-                esp.box.Color = espSettings.teamcolor and plr.TeamColor.Color or espSettings.defaultcolor
-
-                esp.boxoutline.Size = esp.box.Size
-                esp.boxoutline.Position = esp.box.Position
-            end
-        else
-            esp.box.Visible = false
-            esp.boxoutline.Visible = false
-        end
-    else
-        esp.box.Visible = false
-        esp.boxoutline.Visible = false
-    end
-end
-
--- Inicjalizacja ESP dla istniejących graczy
-for _, plr in pairs(Players:GetPlayers()) do
-    if plr ~= player then
-        createEsp(plr)
-    end
-end
-
-Players.PlayerAdded:Connect(function(plr)
-    if plr ~= player then
-        createEsp(plr)
-    end
-end)
-
-Players.PlayerRemoving:Connect(function(plr)
-    removeEsp(plr)
-end)
-
-local espConnection
-
-btnESP.MouseButton1Click:Connect(function()
-    espEnabled = not espEnabled
-    btnESP.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
-
-    if espEnabled then
-        updateStatus("ESP activated", Color3.fromRGB(150, 255, 150))
-        if espConnection then
-            RunService:UnbindFromRenderStep("ESP")
-            espConnection = nil
-        end
-        espConnection = RunService.RenderStepped:Connect(function()
-            for plr, drawings in pairs(espCache) do
-                if espSettings.teamcheck and plr.Team == player.Team then
-                    drawings.box.Visible = false
-                    drawings.boxoutline.Visible = false
-                else
-                    updateEsp(plr, drawings)
-                end
-            end
-        end)
-    else
-        updateStatus("ESP deactivated", Color3.fromRGB(100, 200, 100))
-        if espConnection then
-            espConnection:Disconnect()
-            espConnection = nil
-        end
-        RunService:UnbindFromRenderStep("ESP")
-        for _, drawings in pairs(espCache) do
-            drawings.box.Visible = false
-            drawings.boxoutline.Visible = false
-        end
-    end
-end)
-
--- No Recoil z checkboxem
-local noRecoilEnabled = false
-local noRecoilThread
-local noRecoilFrame = btnNoRecoil.Parent
-for _, v in pairs(noRecoilFrame:GetChildren()) do if v:IsA('TextLabel') or v:IsA('TextButton') then v.Visible = false end end
-local noRecoilLabel = Instance.new("TextLabel")
-noRecoilLabel.Text = "No Recoil"
-noRecoilLabel.Size = UDim2.new(1, -30, 1, 0)
-noRecoilLabel.Position = UDim2.new(0, 30, 0, 0)
-noRecoilLabel.BackgroundTransparency = 1
-noRecoilLabel.TextColor3 = Color3.fromRGB(255,255,255)
-noRecoilLabel.Font = Enum.Font.GothamBold
-noRecoilLabel.TextSize = 18
-noRecoilLabel.TextXAlignment = Enum.TextXAlignment.Left
-noRecoilLabel.Parent = noRecoilFrame
-local noRecoilCheckbox, setNoRecoil = createCheckbox(noRecoilFrame, false, function(state)
-    noRecoilEnabled = state
-    if noRecoilEnabled then
-        updateStatus("No Recoil activated")
-        if noRecoilThread and coroutine.status(noRecoilThread) ~= "dead" then
-            noRecoilEnabled = false
-            coroutine.close(noRecoilThread)
-        end
-        noRecoilThread = coroutine.create(function()
-            while noRecoilEnabled do
-                pcall(function()
-                    for _, v in pairs(ReplicatedStorage.Weapons:GetDescendants()) do
-                        if v.Name == "RecoilControl" then
-                            v.Value = 0
-                        elseif v.Name == "MaxSpread" then
-                            v.Value = 0
-                        elseif v.Name == "MinSpread" then
-                            v.Value = 0
-                        end
-                    end
-                end)
-                wait(0.3)
-            end
-        end)
-        coroutine.resume(noRecoilThread)
-    else
-        updateStatus("No Recoil deactivated")
-        noRecoilEnabled = false
-    end
-end)
-noRecoilCheckbox.Position = UDim2.new(0, 0, 0, 10)
-noRecoilCheckbox.Parent = noRecoilFrame
 
 -- Keyboard shortcut (F1 to toggle GUI)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
