@@ -265,7 +265,7 @@
     end
     switchTab("Aimbot")
 
-    -- === Aimbot Tab Content ===
+    -- === Aimbot Tab Content (sliders and keybind) ===
     local aimbotTab = Tabs["Aimbot"]
 
     -- Layout
@@ -335,21 +335,40 @@
     fovLabel.TextSize = 13
     fovLabel.Parent = aimbotTab
 
-    local fovSlider = Instance.new("TextButton")
+    local fovSlider = Instance.new("Frame")
     fovSlider.Name = "FOVSlider"
-    fovSlider.Text = "Zmień FOV"
     fovSlider.Size = UDim2.new(1, -20, 0, 28)
     fovSlider.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-    fovSlider.TextColor3 = Color3.fromRGB(255,255,255)
-    fovSlider.Font = Enum.Font.Gotham
-    fovSlider.TextSize = 13
-    fovSlider.BorderSizePixel = 0
     fovSlider.Parent = aimbotTab
 
-    fovSlider.MouseButton1Click:Connect(function()
-        aimbotFOV = (aimbotFOV + 20) % 360
-        if aimbotFOV < 40 then aimbotFOV = 40 end
-        fovLabel.Text = "FOV: " .. aimbotFOV
+    local fovBar = Instance.new("Frame")
+    fovBar.Size = UDim2.new(aimbotFOV/360, 0, 1, 0)
+    fovBar.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
+    fovBar.BorderSizePixel = 0
+    fovBar.Parent = fovSlider
+
+    local fovDrag = false
+    fovSlider.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            fovDrag = true
+        end
+    end)
+    fovSlider.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            fovDrag = false
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if fovDrag and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local absPos = fovSlider.AbsolutePosition.X
+            local absSize = fovSlider.AbsoluteSize.X
+            local mouseX = input.Position.X
+            local percent = math.clamp((mouseX - absPos) / absSize, 0, 1)
+            aimbotFOV = math.floor(percent * 360)
+            if aimbotFOV < 40 then aimbotFOV = 40 end
+            fovBar.Size = UDim2.new(aimbotFOV/360, 0, 1, 0)
+            fovLabel.Text = "FOV: " .. aimbotFOV
+        end
     end)
 
     -- Smoothness Slider
@@ -362,85 +381,95 @@
     smoothLabel.TextSize = 13
     smoothLabel.Parent = aimbotTab
 
-    local smoothSlider = Instance.new("TextButton")
+    local smoothSlider = Instance.new("Frame")
     smoothSlider.Name = "SmoothSlider"
-    smoothSlider.Text = "Zmień Smoothness"
     smoothSlider.Size = UDim2.new(1, -20, 0, 28)
     smoothSlider.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-    smoothSlider.TextColor3 = Color3.fromRGB(255,255,255)
-    smoothSlider.Font = Enum.Font.Gotham
-    smoothSlider.TextSize = 13
-    smoothSlider.BorderSizePixel = 0
     smoothSlider.Parent = aimbotTab
 
-    smoothSlider.MouseButton1Click:Connect(function()
-        aimbotSmoothness = aimbotSmoothness + 0.1
-        if aimbotSmoothness > 1 then aimbotSmoothness = 0.1 end
-        smoothLabel.Text = "Smoothness: " .. string.format("%.1f", aimbotSmoothness)
+    local smoothBar = Instance.new("Frame")
+    smoothBar.Size = UDim2.new(aimbotSmoothness, 0, 1, 0)
+    smoothBar.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
+    smoothBar.BorderSizePixel = 0
+    smoothBar.Parent = smoothSlider
+
+    local smoothDrag = false
+    smoothSlider.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            smoothDrag = true
+        end
+    end)
+    smoothSlider.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            smoothDrag = false
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if smoothDrag and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local absPos = smoothSlider.AbsolutePosition.X
+            local absSize = smoothSlider.AbsoluteSize.X
+            local mouseX = input.Position.X
+            local percent = math.clamp((mouseX - absPos) / absSize, 0, 1)
+            aimbotSmoothness = math.floor(percent * 100) / 100
+            if aimbotSmoothness < 0.05 then aimbotSmoothness = 0.05 end
+            smoothBar.Size = UDim2.new(aimbotSmoothness, 0, 1, 0)
+            smoothLabel.Text = "Smoothness: " .. string.format("%.2f", aimbotSmoothness)
+        end
     end)
 
-    -- Target Priority Dropdown
-    local priorityLabel = Instance.new("TextLabel")
-    priorityLabel.Text = "Target Priority: " .. aimbotPriority
-    priorityLabel.Size = UDim2.new(1, -20, 0, 24)
-    priorityLabel.BackgroundTransparency = 1
-    priorityLabel.TextColor3 = Color3.fromRGB(255,255,255)
-    priorityLabel.Font = Enum.Font.Gotham
-    priorityLabel.TextSize = 13
-    priorityLabel.Parent = aimbotTab
+    -- Aimbot Keybind Selector
+    local keybindLabel = Instance.new("TextLabel")
+    keybindLabel.Text = "Aimbot Keybind: RightMouseButton"
+    keybindLabel.Size = UDim2.new(1, -20, 0, 24)
+    keybindLabel.BackgroundTransparency = 1
+    keybindLabel.TextColor3 = Color3.fromRGB(255,255,255)
+    keybindLabel.Font = Enum.Font.Gotham
+    keybindLabel.TextSize = 13
+    keybindLabel.Parent = aimbotTab
 
-    local priorityDropdown = Instance.new("TextButton")
-    priorityDropdown.Name = "PriorityDropdown"
-    priorityDropdown.Text = aimbotPriority
-    priorityDropdown.Size = UDim2.new(1, -20, 0, 28)
-    priorityDropdown.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-    priorityDropdown.TextColor3 = Color3.fromRGB(255,255,255)
-    priorityDropdown.Font = Enum.Font.Gotham
-    priorityDropdown.TextSize = 13
-    priorityDropdown.BorderSizePixel = 0
-    priorityDropdown.Parent = aimbotTab
+    local keybindButton = Instance.new("TextButton")
+    keybindButton.Name = "KeybindButton"
+    keybindButton.Text = "Change Keybind"
+    keybindButton.Size = UDim2.new(1, -20, 0, 28)
+    keybindButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    keybindButton.TextColor3 = Color3.fromRGB(255,255,255)
+    keybindButton.Font = Enum.Font.Gotham
+    keybindButton.TextSize = 13
+    keybindButton.BorderSizePixel = 0
+    keybindButton.Parent = aimbotTab
 
-    local priorities = {"Nearest", "LowestHP", "Visible"}
-    priorityDropdown.MouseButton1Click:Connect(function()
-        local idx = table.find(priorities, aimbotPriority) or 1
-        idx = idx % #priorities + 1
-        aimbotPriority = priorities[idx]
-        priorityDropdown.Text = aimbotPriority
-        priorityLabel.Text = "Target Priority: " .. aimbotPriority
+    local aimbotKeybind = Enum.UserInputType.MouseButton2 -- Default: Right Mouse Button
+    local waitingForKey = false
+    keybindButton.MouseButton1Click:Connect(function()
+        waitingForKey = true
+        keybindButton.Text = "Press any key..."
+    end)
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if waitingForKey and not gameProcessed then
+            if input.UserInputType == Enum.UserInputType.Keyboard or input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2 then
+                aimbotKeybind = input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode or input.UserInputType
+                keybindLabel.Text = "Aimbot Keybind: " .. (input.KeyCode and tostring(input.KeyCode) or tostring(input.UserInputType))
+                keybindButton.Text = "Change Keybind"
+                waitingForKey = false
+            end
+        end
     end)
 
-    -- Wall Check Toggle
-    local wallCheckToggle = Instance.new("TextButton")
-    wallCheckToggle.Name = "WallCheckToggle"
-    wallCheckToggle.Text = "Wall Check: " .. (aimbotWallCheck and "ON" or "OFF")
-    wallCheckToggle.Size = UDim2.new(1, -20, 0, 28)
-    wallCheckToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-    wallCheckToggle.TextColor3 = Color3.fromRGB(255,255,255)
-    wallCheckToggle.Font = Enum.Font.Gotham
-    wallCheckToggle.TextSize = 13
-    wallCheckToggle.BorderSizePixel = 0
-    wallCheckToggle.Parent = aimbotTab
-
-    wallCheckToggle.MouseButton1Click:Connect(function()
-        aimbotWallCheck = not aimbotWallCheck
-        wallCheckToggle.Text = "Wall Check: " .. (aimbotWallCheck and "ON" or "OFF")
+    -- Track if aimbot key is held
+    local aimbotKeyHeld = false
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if not gameProcessed then
+            if (aimbotKeybind == input.UserInputType) or (aimbotKeybind == input.KeyCode) then
+                aimbotKeyHeld = true
+            end
+        end
     end)
-
-    -- Silent Aim Toggle
-    local silentAimToggle = Instance.new("TextButton")
-    silentAimToggle.Name = "SilentAimToggle"
-    silentAimToggle.Text = "Silent Aim: " .. (aimbotSilent and "ON" or "OFF")
-    silentAimToggle.Size = UDim2.new(1, -20, 0, 28)
-    silentAimToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-    silentAimToggle.TextColor3 = Color3.fromRGB(255,255,255)
-    silentAimToggle.Font = Enum.Font.Gotham
-    silentAimToggle.TextSize = 13
-    silentAimToggle.BorderSizePixel = 0
-    silentAimToggle.Parent = aimbotTab
-
-    silentAimToggle.MouseButton1Click:Connect(function()
-        aimbotSilent = not aimbotSilent
-        silentAimToggle.Text = "Silent Aim: " .. (aimbotSilent and "ON" or "OFF")
+    UserInputService.InputEnded:Connect(function(input, gameProcessed)
+        if not gameProcessed then
+            if (aimbotKeybind == input.UserInputType) or (aimbotKeybind == input.KeyCode) then
+                aimbotKeyHeld = false
+            end
+        end
     end)
 
     -- === AIMBOT LOGIC ===
@@ -531,6 +560,7 @@
     -- Main aimbot loop
     RunService.RenderStepped:Connect(function()
         if not aimbotEnabled then return end
+        if not aimbotKeyHeld then return end
         if aimbotSilent then return end -- silent aim handles aiming
         local target = getTarget()
         if target then
