@@ -268,11 +268,29 @@
     -- === Aimbot Tab Content (sliders and keybind) ===
     local aimbotTab = Tabs["Aimbot"]
 
-    -- Layout
+    -- Make the tab content scrollable
+    local aimbotScroll = Instance.new("ScrollingFrame")
+    aimbotScroll.Name = "AimbotScroll"
+    aimbotScroll.Size = UDim2.new(1, 0, 1, 0)
+    aimbotScroll.Position = UDim2.new(0, 0, 0, 0)
+    aimbotScroll.BackgroundTransparency = 1
+    aimbotScroll.BorderSizePixel = 0
+    aimbotScroll.ScrollBarThickness = 6
+    aimbotScroll.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 100)
+    aimbotScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    aimbotScroll.Parent = aimbotTab
+
     local aimbotLayout = Instance.new("UIListLayout")
     aimbotLayout.SortOrder = Enum.SortOrder.LayoutOrder
     aimbotLayout.Padding = UDim.new(0, 10)
-    aimbotLayout.Parent = aimbotTab
+    aimbotLayout.Parent = aimbotScroll
+
+    -- Update CanvasSize automatically
+    local function updateAimbotCanvas()
+        aimbotScroll.CanvasSize = UDim2.new(0, 0, 0, aimbotLayout.AbsoluteContentSize.Y + 10)
+    end
+    aimbotLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateAimbotCanvas)
+    updateAimbotCanvas()
 
     -- Enable Aimbot Toggle
     local aimbotToggle = Instance.new("TextButton")
@@ -285,7 +303,7 @@
     aimbotToggle.Font = Enum.Font.GothamBold
     aimbotToggle.TextSize = 14
     aimbotToggle.BorderSizePixel = 0
-    aimbotToggle.Parent = aimbotTab
+    aimbotToggle.Parent = aimbotScroll
 
     local aimbotToggleCorner = Instance.new("UICorner")
     aimbotToggleCorner.CornerRadius = UDim.new(0, 8)
@@ -304,18 +322,18 @@
     targetPartLabel.TextColor3 = Color3.fromRGB(255,255,255)
     targetPartLabel.Font = Enum.Font.Gotham
     targetPartLabel.TextSize = 13
-    targetPartLabel.Parent = aimbotTab
+    targetPartLabel.Parent = aimbotScroll
 
     local targetPartDropdown = Instance.new("TextButton")
     targetPartDropdown.Name = "TargetPartDropdown"
     targetPartDropdown.Text = aimbotTargetPart
-        targetPartDropdown.Size = UDim2.new(1, -20, 0, 28)
+    targetPartDropdown.Size = UDim2.new(1, -20, 0, 28)
     targetPartDropdown.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
     targetPartDropdown.TextColor3 = Color3.fromRGB(255,255,255)
     targetPartDropdown.Font = Enum.Font.Gotham
     targetPartDropdown.TextSize = 13
     targetPartDropdown.BorderSizePixel = 0
-    targetPartDropdown.Parent = aimbotTab
+    targetPartDropdown.Parent = aimbotScroll
 
     local targetParts = {"Head", "Torso"}
     targetPartDropdown.MouseButton1Click:Connect(function()
@@ -333,13 +351,13 @@
     fovLabel.TextColor3 = Color3.fromRGB(255,255,255)
     fovLabel.Font = Enum.Font.Gotham
     fovLabel.TextSize = 13
-    fovLabel.Parent = aimbotTab
+    fovLabel.Parent = aimbotScroll
 
     local fovSlider = Instance.new("Frame")
     fovSlider.Name = "FOVSlider"
     fovSlider.Size = UDim2.new(1, -20, 0, 28)
     fovSlider.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-    fovSlider.Parent = aimbotTab
+    fovSlider.Parent = aimbotScroll
 
     local fovBar = Instance.new("Frame")
     fovBar.Size = UDim2.new(aimbotFOV/360, 0, 1, 0)
@@ -379,13 +397,13 @@
     smoothLabel.TextColor3 = Color3.fromRGB(255,255,255)
     smoothLabel.Font = Enum.Font.Gotham
     smoothLabel.TextSize = 13
-    smoothLabel.Parent = aimbotTab
+    smoothLabel.Parent = aimbotScroll
 
     local smoothSlider = Instance.new("Frame")
     smoothSlider.Name = "SmoothSlider"
     smoothSlider.Size = UDim2.new(1, -20, 0, 28)
     smoothSlider.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-    smoothSlider.Parent = aimbotTab
+    smoothSlider.Parent = aimbotScroll
 
     local smoothBar = Instance.new("Frame")
     smoothBar.Size = UDim2.new(aimbotSmoothness, 0, 1, 0)
@@ -425,7 +443,7 @@
     keybindLabel.TextColor3 = Color3.fromRGB(255,255,255)
     keybindLabel.Font = Enum.Font.Gotham
     keybindLabel.TextSize = 13
-    keybindLabel.Parent = aimbotTab
+    keybindLabel.Parent = aimbotScroll
 
     local keybindButton = Instance.new("TextButton")
     keybindButton.Name = "KeybindButton"
@@ -436,7 +454,7 @@
     keybindButton.Font = Enum.Font.Gotham
     keybindButton.TextSize = 13
     keybindButton.BorderSizePixel = 0
-    keybindButton.Parent = aimbotTab
+    keybindButton.Parent = aimbotScroll
 
     local aimbotKeybind = Enum.UserInputType.MouseButton2 -- Default: Right Mouse Button
     local waitingForKey = false
