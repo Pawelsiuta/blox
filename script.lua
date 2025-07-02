@@ -543,18 +543,6 @@ local aimbotEnabled = false
 local aimbotFOV = 60
 local aimbotHeadOnly = false
 
-btnAimbot.MouseButton1Click:Connect(function()
-    if AimbotMenu.Visible then
-        AimbotMenu.Visible = false
-        updateStatus("Aimbot menu closed")
-    else
-        local btn = btnAimbot.Parent
-        AimbotMenu.Position = UDim2.new(0, btn.Position.X.Offset, 0, btn.Position.Y.Offset + btn.Size.Y.Offset + 10)
-        AimbotMenu.Visible = true
-        updateStatus("Aimbot menu opened")
-    end
-end)
-
 AimbotToggle.MouseButton1Click:Connect(function()
     aimbotEnabled = not aimbotEnabled
     AimbotToggle.Text = "Aimbot: " .. (aimbotEnabled and "ON" or "OFF")
@@ -660,35 +648,28 @@ end)
 
 -- Close button functionality
 CloseButton.MouseButton1Click:Connect(function()
-    local tween = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
-        Size = UDim2.new(0, 0, 0, 0),
-        Position = UDim2.new(0.5, 0, 0.5, 0)
-    })
-    tween:Play()
-    tween.Completed:Connect(function()
-        ScreenGui:Destroy()
-    end)
+    ScreenGui:Destroy()
 end)
 
--- Animacja zwijania/rozwijania menu
+-- Minimalizacja
 local isMinimized = false
 MinimizeButton.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
     if isMinimized then
-        for _, child in pairs(MainFrame:GetChildren()) do
-            if child ~= HeaderFrame then
-                child.Visible = false
-            end
-        end
-        MainFrame.Size = UDim2.new(0, 450, 0, 50)
+        ContentFrame.Visible = false
         MinimizeButton.Text = "+"
+        MainFrame.Size = UDim2.new(0, 450, 0, 50)
     else
-        for _, child in pairs(MainFrame:GetChildren()) do
-            child.Visible = true
-        end
-        MainFrame.Size = UDim2.new(0, 450, 0, 320)
+        ContentFrame.Visible = true
         MinimizeButton.Text = "-"
+        MainFrame.Size = UDim2.new(0, 450, 0, 320)
     end
+end)
+
+-- Scrollowanie działa domyślnie przez ScrollingFrame (ContentFrame)
+ContentFrame.CanvasSize = UDim2.new(0, 0, 0, ButtonLayout.AbsoluteContentSize.Y + 20)
+ButtonLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    ContentFrame.CanvasSize = UDim2.new(0, 0, 0, ButtonLayout.AbsoluteContentSize.Y + 20)
 end)
 
 -- Keyboard shortcut (F1 to toggle GUI)
