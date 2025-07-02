@@ -597,3 +597,188 @@
     startupTween:Play()
 
     print("Arsenal Hub loaded! Press F1 to toggle visibility.")
+
+    -- === ESP SETTINGS & TAB ===
+    local espEnabled = false
+    local boxESPEnabled = false
+    local nameESPEnabled = false
+    local healthbarESPEnabled = false
+    local dynamicScalingEnabled = false
+    local teamCheckEnabled = false
+    local colorByTeamEnabled = false
+
+    -- ESP Tab Content
+    local espTab = Tabs["ESP"]
+    local espScroll = Instance.new("ScrollingFrame")
+    espScroll.Name = "ESPScroll"
+    espScroll.Size = UDim2.new(1, 0, 1, 0)
+    espScroll.Position = UDim2.new(0, 0, 0, 0)
+    espScroll.BackgroundTransparency = 1
+    espScroll.BorderSizePixel = 0
+    espScroll.ScrollBarThickness = 6
+    espScroll.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 100)
+    espScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    espScroll.Parent = espTab
+
+    local espLayout = Instance.new("UIListLayout")
+    espLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    espLayout.Padding = UDim.new(0, 10)
+    espLayout.Parent = espScroll
+    local function updateESPCanvas()
+        espScroll.CanvasSize = UDim2.new(0, 0, 0, espLayout.AbsoluteContentSize.Y + 10)
+    end
+    espLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateESPCanvas)
+    updateESPCanvas()
+
+    local function createESPToggle(name, stateVar)
+        local btn = Instance.new("TextButton")
+        btn.Name = name .. "Toggle"
+        btn.Text = name .. ": OFF"
+        btn.Size = UDim2.new(1, -20, 0, 32)
+        btn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+        btn.TextColor3 = Color3.fromRGB(255,255,255)
+        btn.Font = Enum.Font.Gotham
+        btn.TextSize = 13
+        btn.BorderSizePixel = 0
+        btn.Parent = espScroll
+        btn.MouseButton1Click:Connect(function()
+            _G[stateVar] = not _G[stateVar]
+            btn.Text = name .. ": " .. (_G[stateVar] and "ON" or "OFF")
+        end)
+        return btn
+    end
+
+    _G.espEnabled = false
+    _G.boxESPEnabled = false
+    _G.nameESPEnabled = false
+    _G.healthbarESPEnabled = false
+    _G.dynamicScalingEnabled = false
+    _G.teamCheckEnabled = false
+    _G.colorByTeamEnabled = false
+
+    createESPToggle("ESP", "espEnabled")
+    createESPToggle("Box ESP", "boxESPEnabled")
+    createESPToggle("Name ESP", "nameESPEnabled")
+    createESPToggle("Healthbar ESP", "healthbarESPEnabled")
+    createESPToggle("Dynamic Scaling", "dynamicScalingEnabled")
+    createESPToggle("Team Check", "teamCheckEnabled")
+    createESPToggle("Color By Team", "colorByTeamEnabled")
+
+    -- ESP Drawing System
+    local espDrawings = {}
+    local function clearESP()
+        for _, drawings in pairs(espDrawings) do
+            for _, d in pairs(drawings) do
+                if d.Remove then d:Remove() end
+            end
+        end
+        espDrawings = {}
+    end
+
+    local function getTeamColor(plr)
+        if colorByTeamEnabled and plr.TeamColor then
+            return plr.TeamColor.Color
+        end
+        return Color3.fromRGB(255,0,0)
+    end
+
+    local function getHealthColor(health, maxHealth)
+        local percent = health / maxHealth
+        if percent > 0.5 then
+            return Color3.fromRGB(0,255,0)
+        elseif percent > 0.2 then
+            return Color3.fromRGB(255,255,0)
+        else
+            return Color3.fromRGB(255,0,0)
+        end
+    end
+
+    local function updateESP()
+        if not _G.espEnabled then clearESP() return end
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0 then
+                if teamCheckEnabled and plr.Team == player.Team then
+                    if espDrawings[plr] then
+                        for _, d in pairs(espDrawings[plr]) do d.Visible = false end
+                    end
+                    continue
+                end
+                local root = plr.Character.HumanoidRootPart
+                local pos, onScreen = camera:WorldToViewportPoint(root.Position)
+                if not onScreen then
+                    if espDrawings[plr] then
+                        for _, d in pairs(espDrawings[plr]) do d.Visible = false end
+                    end
+                    continue
+                end
+                if not espDrawings[plr] then
+                    espDrawings[plr] = {}
+                    if _G.boxESPEnabled then
+                        local box = Drawing.new("Square")
+                        box.Thickness = 2
+                        box.Filled = false
+                        box.Color = getTeamColor(plr)
+                        box.Visible = false
+                        espDrawings[plr].box = box
+                    end
+                    if _G.nameESPEnabled then
+                        local name = Drawing.new("Text")
+                        name.Size = 16
+                        name.Color = getTeamColor(plr)
+                        name.Center = true
+                        name.Outline = true
+                        name.Visible = false
+                        espDrawings[plr].name = name
+                    end
+                    if _G.healthbarESPEnabled then
+                        local bar = Drawing.new("Line")
+                        bar.Thickness = 4
+                        bar.Color = Color3.fromRGB(0,255,0)
+                        bar.Visible = false
+                        espDrawings[plr].healthbar = bar
+                    end
+                end
+                -- Dynamic scaling
+                local scale = 1
+                if _G.dynamicScalingEnabled then
+                    local dist = (camera.CFrame.Position - root.Position).Magnitude
+                    scale = math.clamp(1200 / dist, 0.5, 2)
+                end
+                -- Box ESP
+                if _G.boxESPEnabled and espDrawings[plr].box then
+                    local sizeY = (plr.Character.Humanoid.HipHeight * 2 + 2) * scale * 2
+                    local sizeX = sizeY / 2
+                    espDrawings[plr].box.Size = Vector2.new(sizeX, sizeY)
+                    espDrawings[plr].box.Position = Vector2.new(pos.X - sizeX/2, pos.Y - sizeY/2)
+                    espDrawings[plr].box.Color = getTeamColor(plr)
+                    espDrawings[plr].box.Visible = true
+                end
+                -- Name ESP
+                if _G.nameESPEnabled and espDrawings[plr].name then
+                    espDrawings[plr].name.Text = plr.Name
+                    espDrawings[plr].name.Position = Vector2.new(pos.X, pos.Y - 30 * scale)
+                    espDrawings[plr].name.Color = getTeamColor(plr)
+                    espDrawings[plr].name.Visible = true
+                end
+                -- Healthbar ESP
+                if _G.healthbarESPEnabled and espDrawings[plr].healthbar then
+                    local health = plr.Character.Humanoid.Health
+                    local maxHealth = plr.Character.Humanoid.MaxHealth
+                    local barHeight = 40 * scale
+                    local barX = pos.X - ((plr.Character.Humanoid.HipHeight * scale) + 10)
+                    local barY1 = pos.Y - barHeight/2
+                    local barY2 = barY1 + barHeight * (health / maxHealth)
+                    espDrawings[plr].healthbar.From = Vector2.new(barX, barY2)
+                    espDrawings[plr].healthbar.To = Vector2.new(barX, barY1 + barHeight)
+                    espDrawings[plr].healthbar.Color = getHealthColor(health, maxHealth)
+                    espDrawings[plr].healthbar.Visible = true
+                end
+            else
+                if espDrawings[plr] then
+                    for _, d in pairs(espDrawings[plr]) do d.Visible = false end
+                end
+            end
+        end
+    end
+
+    RunService:BindToRenderStep("ESP", Enum.RenderPriority.Camera.Value + 1, updateESP)
