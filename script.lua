@@ -60,17 +60,18 @@ local HeaderCorner = Instance.new("UICorner")
 HeaderCorner.CornerRadius = UDim.new(0, 12)
 HeaderCorner.Parent = HeaderFrame
 
--- Tytuł
+-- Główny napis na środku
 local Title = Instance.new("TextLabel")
 Title.Name = "Title"
 Title.Text = "ARSENAL HUB"
-Title.Size = UDim2.new(1, -100, 1, 0)
-Title.Position = UDim2.new(0, 20, 0, 0)
+Title.Size = UDim2.new(1, 0, 1, 0)
+Title.Position = UDim2.new(0, 0, 0, 0)
 Title.BackgroundTransparency = 1
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 22
-Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.TextSize = 24
+Title.TextXAlignment = Enum.TextXAlignment.Center
+Title.TextYAlignment = Enum.TextYAlignment.Center
 Title.Parent = HeaderFrame
 
 -- Przycisk zamknięcia
@@ -187,31 +188,57 @@ local function createButton(text, layoutOrder, color)
     return button
 end
 
--- Status display
-local StatusFrame = Instance.new("Frame")
-StatusFrame.Name = "StatusFrame"
-StatusFrame.Size = UDim2.new(1, -20, 0, 30)
-StatusFrame.Position = UDim2.new(0, 10, 1, -40)
-StatusFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-StatusFrame.BackgroundTransparency = 0.3
-StatusFrame.BorderSizePixel = 0
-StatusFrame.Parent = MainFrame
+-- Status display (przeniesione powiadomienia na środek u góry)
+local NotificationFrame = Instance.new("Frame")
+NotificationFrame.Name = "NotificationFrame"
+NotificationFrame.Size = UDim2.new(0, 350, 0, 36)
+NotificationFrame.Position = UDim2.new(0.5, -175, 0, 10)
+NotificationFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+NotificationFrame.BackgroundTransparency = 0.2
+NotificationFrame.BorderSizePixel = 0
+NotificationFrame.Visible = false
+NotificationFrame.Parent = ScreenGui
 
-local StatusCorner = Instance.new("UICorner")
-StatusCorner.CornerRadius = UDim.new(0, 6)
-StatusCorner.Parent = StatusFrame
+local NotificationCorner = Instance.new("UICorner")
+NotificationCorner.CornerRadius = UDim.new(0, 8)
+NotificationCorner.Parent = NotificationFrame
 
-local StatusLabel = Instance.new("TextLabel")
-StatusLabel.Name = "StatusLabel"
-StatusLabel.Text = "Ready"
-StatusLabel.Size = UDim2.new(1, -10, 1, 0)
-StatusLabel.Position = UDim2.new(0, 5, 0, 0)
-StatusLabel.BackgroundTransparency = 1
-StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-StatusLabel.Font = Enum.Font.GothamBold
-StatusLabel.TextSize = 16
-StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
-StatusLabel.Parent = StatusFrame
+local NotificationLabel = Instance.new("TextLabel")
+NotificationLabel.Name = "NotificationLabel"
+NotificationLabel.Text = ""
+NotificationLabel.Size = UDim2.new(1, -20, 1, 0)
+NotificationLabel.Position = UDim2.new(0, 10, 0, 0)
+NotificationLabel.BackgroundTransparency = 1
+NotificationLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+NotificationLabel.Font = Enum.Font.GothamBold
+NotificationLabel.TextSize = 18
+NotificationLabel.TextXAlignment = Enum.TextXAlignment.Center
+NotificationLabel.TextYAlignment = Enum.TextYAlignment.Center
+NotificationLabel.Parent = NotificationFrame
+
+-- Funkcja powiadomień
+local notificationTween
+local function showNotification(message)
+    NotificationLabel.Text = message
+    NotificationFrame.Visible = true
+    if notificationTween then notificationTween:Cancel() end
+    notificationTween = TweenService:Create(NotificationFrame, TweenInfo.new(0.3), {BackgroundTransparency = 0.2})
+    notificationTween:Play()
+    delay(2.5, function()
+        if NotificationFrame.Visible then
+            local hideTween = TweenService:Create(NotificationFrame, TweenInfo.new(0.3), {BackgroundTransparency = 1})
+            hideTween:Play()
+            hideTween.Completed:Wait()
+            NotificationFrame.Visible = false
+            NotificationFrame.BackgroundTransparency = 0.2
+        end
+    end)
+end
+
+-- Zmieniam updateStatus na showNotification
+local function updateStatus(message, color)
+    showNotification(message)
+end
 
 -- Tworzenie przycisków
 local btnFastFire = createButton("Fast Fire: OFF", 1, Color3.fromRGB(255, 100, 100))
@@ -291,6 +318,7 @@ local aimbotHeadOnly = false
 
 btnAimbot.MouseButton1Click:Connect(function()
     AimbotMenu.Visible = not AimbotMenu.Visible
+    updateStatus(AimbotMenu.Visible and "Aimbot menu opened" or "Aimbot menu closed")
 end)
 
 AimbotToggle.MouseButton1Click:Connect(function()
@@ -422,31 +450,18 @@ MinimizeButton.MouseButton1Click:Connect(function()
     MinimizeButton.Text = isMinimized and "+" or "-"
 end)
 
--- Funkcje statusu
-local function updateStatus(message, color)
-    StatusLabel.Text = message
-    StatusLabel.TextColor3 = color or Color3.fromRGB(200, 200, 200)
-end
-
--- Zmienne stanu
-local fastFireEnabled = false
-local infAmmoEnabled = false
-local enemyFollowEnabled = false
-local espEnabled = false
-local noRecoilEnabled = false
-
 -- Fast Fire System
-local fastFireConnection
+local fastFireThread
 btnFastFire.MouseButton1Click:Connect(function()
     fastFireEnabled = not fastFireEnabled
     btnFastFire.Text = "Fast Fire: " .. (fastFireEnabled and "ON" or "OFF")
-    
     if fastFireEnabled then
-        updateStatus("Fast Fire activated", Color3.fromRGB(255, 150, 150))
-        if fastFireConnection and coroutine.status(fastFireConnection) ~= "dead" then
-            coroutine.close(fastFireConnection)
+        updateStatus("Fast Fire activated")
+        if fastFireThread and coroutine.status(fastFireThread) ~= "dead" then
+            fastFireEnabled = false
+            coroutine.close(fastFireThread)
         end
-        fastFireConnection = coroutine.create(function()
+        fastFireThread = coroutine.create(function()
             while fastFireEnabled do
                 pcall(function()
                     for _, v in pairs(ReplicatedStorage.Weapons:GetDescendants()) do
@@ -460,12 +475,12 @@ btnFastFire.MouseButton1Click:Connect(function()
                 wait(0.3)
             end
         end)
-        coroutine.resume(fastFireConnection)
+        coroutine.resume(fastFireThread)
     else
-        updateStatus("Fast Fire deactivated", Color3.fromRGB(255, 100, 100))
-        if fastFireConnection and coroutine.status(fastFireConnection) ~= "dead" then
+        updateStatus("Fast Fire deactivated")
+        if fastFireThread and coroutine.status(fastFireThread) ~= "dead" then
             fastFireEnabled = false
-            coroutine.close(fastFireConnection)
+            coroutine.close(fastFireThread)
         end
     end
 end)
@@ -761,14 +776,17 @@ btnESP.MouseButton1Click:Connect(function()
 end)
 
 -- No Recoil System
-local noRecoilConnection
+local noRecoilThread
 btnNoRecoil.MouseButton1Click:Connect(function()
     noRecoilEnabled = not noRecoilEnabled
     btnNoRecoil.Text = "No Recoil: " .. (noRecoilEnabled and "ON" or "OFF")
-    
     if noRecoilEnabled then
-        updateStatus("No Recoil activated", Color3.fromRGB(200, 150, 255))
-        noRecoilConnection = spawn(function()
+        updateStatus("No Recoil activated")
+        if noRecoilThread and coroutine.status(noRecoilThread) ~= "dead" then
+            noRecoilEnabled = false
+            coroutine.close(noRecoilThread)
+        end
+        noRecoilThread = coroutine.create(function()
             while noRecoilEnabled do
                 pcall(function()
                     for _, v in pairs(ReplicatedStorage.Weapons:GetDescendants()) do
@@ -784,8 +802,13 @@ btnNoRecoil.MouseButton1Click:Connect(function()
                 wait(0.3)
             end
         end)
+        coroutine.resume(noRecoilThread)
     else
-        updateStatus("No Recoil deactivated", Color3.fromRGB(150, 100, 200))
+        updateStatus("No Recoil deactivated")
+        if noRecoilThread and coroutine.status(noRecoilThread) ~= "dead" then
+            noRecoilEnabled = false
+            coroutine.close(noRecoilThread)
+        end
     end
 end)
 
