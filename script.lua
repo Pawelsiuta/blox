@@ -137,59 +137,52 @@ ContentPadding.PaddingTop = UDim.new(0, 10)
 ContentPadding.PaddingBottom = UDim.new(0, 10)
 ContentPadding.Parent = ContentFrame
 
--- Checkbox utility (biały, spójny)
-local function createCheckbox(parent, checked, callback)
-    local box = Instance.new("Frame")
-    box.Size = UDim2.new(0, 24, 0, 24)
-    box.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    box.BorderSizePixel = 2
-    box.BorderColor3 = Color3.fromRGB(255,255,255)
-    box.Parent = parent
-    local mark = Instance.new("Frame")
-    mark.Size = UDim2.new(1, -8, 1, -8)
-    mark.Position = UDim2.new(0, 4, 0, 4)
-    mark.BackgroundColor3 = Color3.fromRGB(255,255,255)
-    mark.Visible = checked
-    mark.Parent = box
-    box.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            checked = not checked
-            mark.Visible = checked
-            callback(checked)
-        end
-    end)
-    return box, function(val) checked = val; mark.Visible = val end
-end
-
--- Funkcja do tworzenia przycisków z checkboxem
-local function createToggleButton(text, layoutOrder, callback)
+-- Funkcja do tworzenia zwykłych przycisków ON/OFF
+local function createButton(text, layoutOrder, color)
     local buttonFrame = Instance.new("Frame")
     buttonFrame.Name = text .. "Frame"
     buttonFrame.Size = UDim2.new(1, -20, 0, 45)
     buttonFrame.BackgroundTransparency = 1
     buttonFrame.LayoutOrder = layoutOrder
     buttonFrame.Parent = ContentFrame
-    local label = Instance.new("TextLabel")
-    label.Text = text
-    label.Size = UDim2.new(1, -30, 1, 0)
-    label.Position = UDim2.new(0, 30, 0, 0)
-    label.BackgroundTransparency = 1
-    label.TextColor3 = Color3.fromRGB(255,255,255)
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 18
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = buttonFrame
-    local checkbox, setChecked = createCheckbox(buttonFrame, false, callback)
-    checkbox.Position = UDim2.new(0, 0, 0, 10)
-    checkbox.Parent = buttonFrame
-    return buttonFrame, setChecked
+    local button = Instance.new("TextButton")
+    button.Name = text .. "Button"
+    button.Text = text .. ": OFF"
+    button.Size = UDim2.new(1, 0, 1, 0)
+    button.BackgroundColor3 = color or Color3.fromRGB(60, 60, 60)
+    button.BackgroundTransparency = 0.3
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = 18
+    button.BorderSizePixel = 0
+    button.Parent = buttonFrame
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 8)
+    buttonCorner.Parent = button
+    local buttonGradient = Instance.new("UIGradient")
+    buttonGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, color or Color3.fromRGB(60, 60, 60)),
+        ColorSequenceKeypoint.new(1, color and Color3.new((color.R or 60) * 0.8, (color.G or 60) * 0.8, (color.B or 60) * 0.8) or Color3.fromRGB(45, 45, 65))
+    }
+    buttonGradient.Rotation = 90
+    buttonGradient.Parent = button
+    return button
 end
+
+-- Tworzenie przycisków ON/OFF
+local btnFastFire = createButton("Fast Fire", 1, Color3.fromRGB(255, 100, 100))
+local btnInfAmmo = createButton("Infinite Ammo", 2, Color3.fromRGB(100, 200, 255))
+local btnEnemyFollow = createButton("Enemy Follow", 3, Color3.fromRGB(255, 200, 100))
+local btnESP = createButton("ESP", 4, Color3.fromRGB(150, 255, 150))
+local btnNoRecoil = createButton("No Recoil", 5, Color3.fromRGB(200, 150, 255))
+local btnAimbot = createButton("Aimbot", 6, Color3.fromRGB(180, 180, 180))
 
 -- Fast Fire
 local fastFireEnabled = false
 local fastFireThread
-local _, setFastFire = createToggleButton("Fast Fire", 1, function(state)
-    fastFireEnabled = state
+btnFastFire.MouseButton1Click:Connect(function()
+    fastFireEnabled = not fastFireEnabled
+    btnFastFire.Text = "Fast Fire: " .. (fastFireEnabled and "ON" or "OFF")
     if fastFireEnabled then
         updateStatus("Fast Fire activated")
         if fastFireThread and coroutine.status(fastFireThread) ~= "dead" then
@@ -220,8 +213,9 @@ end)
 -- Infinite Ammo
 local infAmmoEnabled = false
 local infAmmoThread
-local _, setInfAmmo = createToggleButton("Infinite Ammo", 2, function(state)
-    infAmmoEnabled = state
+btnInfAmmo.MouseButton1Click:Connect(function()
+    infAmmoEnabled = not infAmmoEnabled
+    btnInfAmmo.Text = "Infinite Ammo: " .. (infAmmoEnabled and "ON" or "OFF")
     if infAmmoEnabled then
         updateStatus("Infinite Ammo activated")
         if infAmmoThread and coroutine.status(infAmmoThread) ~= "dead" then
@@ -254,8 +248,9 @@ end)
 -- Enemy Follow
 local enemyFollowEnabled = false
 local enemyFollowThread
-local _, setEnemyFollow = createToggleButton("Enemy Follow", 3, function(state)
-    enemyFollowEnabled = state
+btnEnemyFollow.MouseButton1Click:Connect(function()
+    enemyFollowEnabled = not enemyFollowEnabled
+    btnEnemyFollow.Text = "Enemy Follow: " .. (enemyFollowEnabled and "ON" or "OFF")
     if enemyFollowEnabled then
         updateStatus("Enemy Follow activated")
         if enemyFollowThread and coroutine.status(enemyFollowThread) ~= "dead" then
@@ -278,8 +273,9 @@ end)
 -- ESP
 local espEnabled = false
 local espThread
-local _, setESP = createToggleButton("ESP", 4, function(state)
-    espEnabled = state
+btnESP.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    btnESP.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
     if espEnabled then
         updateStatus("ESP activated")
         if espThread and coroutine.status(espThread) ~= "dead" then
@@ -302,8 +298,9 @@ end)
 -- No Recoil
 local noRecoilEnabled = false
 local noRecoilThread
-local _, setNoRecoil = createToggleButton("No Recoil", 5, function(state)
-    noRecoilEnabled = state
+btnNoRecoil.MouseButton1Click:Connect(function()
+    noRecoilEnabled = not noRecoilEnabled
+    btnNoRecoil.Text = "No Recoil: " .. (noRecoilEnabled and "ON" or "OFF")
     if noRecoilEnabled then
         updateStatus("No Recoil activated")
         if noRecoilThread and coroutine.status(noRecoilThread) ~= "dead" then
@@ -466,14 +463,6 @@ end
 local function updateStatus(message, color)
     showNotification(message)
 end
-
--- Tworzenie przycisków
-local btnFastFire = createButton("Fast Fire: OFF", 1, Color3.fromRGB(255, 100, 100))
-local btnInfAmmo = createButton("Infinite Ammo: OFF", 2, Color3.fromRGB(100, 200, 255))
-local btnEnemyFollow = createButton("Enemy Follow: OFF", 3, Color3.fromRGB(255, 200, 100))
-local btnESP = createButton("ESP: OFF", 4, Color3.fromRGB(150, 255, 150))
-local btnNoRecoil = createButton("No Recoil: OFF", 5, Color3.fromRGB(200, 150, 255))
-local btnAimbot = createButton("Aimbot", 6, Color3.fromRGB(180, 180, 180))
 
 -- Aimbot menu (ukryte domyślnie)
 local AimbotMenu = Instance.new("Frame")
