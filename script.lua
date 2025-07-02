@@ -63,27 +63,27 @@ HeaderCorner.Parent = HeaderFrame
 -- Tytuł
 local Title = Instance.new("TextLabel")
 Title.Name = "Title"
-Title.Text = "🎯 ARSENAL HUB"
+Title.Text = "ARSENAL HUB"
 Title.Size = UDim2.new(1, -100, 1, 0)
 Title.Position = UDim2.new(0, 20, 0, 0)
 Title.BackgroundTransparency = 1
-Title.TextColor3 = Color3.fromRGB(220, 220, 220)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 18
+Title.TextSize = 22
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = HeaderFrame
 
 -- Przycisk zamknięcia
 local CloseButton = Instance.new("TextButton")
 CloseButton.Name = "CloseButton"
-CloseButton.Text = "✕"
-CloseButton.Size = UDim2.new(0, 40, 0, 40)
-CloseButton.Position = UDim2.new(1, -45, 0, 5)
-CloseButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-CloseButton.BackgroundTransparency = 0.2
-CloseButton.TextColor3 = Color3.fromRGB(230, 230, 230)
+CloseButton.Text = "X"
+CloseButton.Size = UDim2.new(0, 44, 0, 44)
+CloseButton.Position = UDim2.new(1, -49, 0, 3)
+CloseButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+CloseButton.BackgroundTransparency = 0
+CloseButton.TextColor3 = Color3.fromRGB(255, 80, 80)
 CloseButton.Font = Enum.Font.GothamBold
-CloseButton.TextSize = 16
+CloseButton.TextSize = 28
 CloseButton.BorderSizePixel = 0
 CloseButton.Parent = HeaderFrame
 
@@ -94,7 +94,7 @@ CloseCorner.Parent = CloseButton
 -- Przycisk minimalizacji
 local MinimizeButton = Instance.new("TextButton")
 MinimizeButton.Name = "MinimizeButton"
-MinimizeButton.Text = "−"
+MinimizeButton.Text = "-"
 MinimizeButton.Size = UDim2.new(0, 40, 0, 40)
 MinimizeButton.Position = UDim2.new(1, -90, 0, 5)
 MinimizeButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
@@ -151,9 +151,9 @@ local function createButton(text, layoutOrder, color)
     button.Size = UDim2.new(1, 0, 1, 0)
     button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
     button.BackgroundTransparency = 0.3
-    button.TextColor3 = Color3.fromRGB(220, 220, 220)
-    button.Font = Enum.Font.Gotham
-    button.TextSize = 14
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = 18
     button.BorderSizePixel = 0
     button.Parent = buttonFrame
     
@@ -207,18 +207,150 @@ StatusLabel.Text = "Ready"
 StatusLabel.Size = UDim2.new(1, -10, 1, 0)
 StatusLabel.Position = UDim2.new(0, 5, 0, 0)
 StatusLabel.BackgroundTransparency = 1
-StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-StatusLabel.Font = Enum.Font.Gotham
-StatusLabel.TextSize = 12
+StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+StatusLabel.Font = Enum.Font.GothamBold
+StatusLabel.TextSize = 16
 StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
 StatusLabel.Parent = StatusFrame
 
 -- Tworzenie przycisków
-local btnFastFire = createButton("🔥 Fast Fire: OFF", 1, Color3.fromRGB(255, 100, 100))
-local btnInfAmmo = createButton("∞ Infinite Ammo: OFF", 2, Color3.fromRGB(100, 200, 255))
-local btnEnemyFollow = createButton("🎯 Enemy Follow: OFF", 3, Color3.fromRGB(255, 200, 100))
-local btnESP = createButton("👁️ ESP: OFF", 4, Color3.fromRGB(150, 255, 150))
-local btnNoRecoil = createButton("🎯 No Recoil: OFF", 5, Color3.fromRGB(200, 150, 255))
+local btnFastFire = createButton("Fast Fire: OFF", 1, Color3.fromRGB(255, 100, 100))
+local btnInfAmmo = createButton("Infinite Ammo: OFF", 2, Color3.fromRGB(100, 200, 255))
+local btnEnemyFollow = createButton("Enemy Follow: OFF", 3, Color3.fromRGB(255, 200, 100))
+local btnESP = createButton("ESP: OFF", 4, Color3.fromRGB(150, 255, 150))
+local btnNoRecoil = createButton("No Recoil: OFF", 5, Color3.fromRGB(200, 150, 255))
+local btnAimbot = createButton("Aimbot", 6, Color3.fromRGB(180, 180, 180))
+
+-- Aimbot menu (ukryte domyślnie)
+local AimbotMenu = Instance.new("Frame")
+AimbotMenu.Name = "AimbotMenu"
+AimbotMenu.Size = UDim2.new(1, -40, 0, 110)
+AimbotMenu.Position = UDim2.new(0, 20, 0, 320)
+AimbotMenu.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+AimbotMenu.BackgroundTransparency = 0.4
+AimbotMenu.Visible = false
+AimbotMenu.Parent = MainFrame
+
+local AimbotCorner = Instance.new("UICorner")
+AimbotCorner.CornerRadius = UDim.new(0, 10)
+AimbotCorner.Parent = AimbotMenu
+
+local AimbotToggle = Instance.new("TextButton")
+AimbotToggle.Name = "AimbotToggle"
+AimbotToggle.Text = "Aimbot: OFF"
+AimbotToggle.Size = UDim2.new(0, 180, 0, 32)
+AimbotToggle.Position = UDim2.new(0, 10, 0, 10)
+AimbotToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+AimbotToggle.BackgroundTransparency = 0.2
+AimbotToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotToggle.Font = Enum.Font.GothamBold
+AimbotToggle.TextSize = 18
+AimbotToggle.Parent = AimbotMenu
+
+local FOVLabel = Instance.new("TextLabel")
+FOVLabel.Name = "FOVLabel"
+FOVLabel.Text = "Aimbot FOV:"
+FOVLabel.Size = UDim2.new(0, 100, 0, 28)
+FOVLabel.Position = UDim2.new(0, 10, 0, 50)
+FOVLabel.BackgroundTransparency = 1
+FOVLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+FOVLabel.Font = Enum.Font.GothamBold
+FOVLabel.TextSize = 16
+FOVLabel.TextXAlignment = Enum.TextXAlignment.Left
+FOVLabel.Parent = AimbotMenu
+
+local FOVBox = Instance.new("TextBox")
+FOVBox.Name = "FOVBox"
+FOVBox.Text = "60"
+FOVBox.Size = UDim2.new(0, 50, 0, 28)
+FOVBox.Position = UDim2.new(0, 120, 0, 50)
+FOVBox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+FOVBox.BackgroundTransparency = 0.2
+FOVBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+FOVBox.Font = Enum.Font.GothamBold
+FOVBox.TextSize = 16
+FOVBox.ClearTextOnFocus = false
+FOVBox.Parent = AimbotMenu
+
+local HeadOnlyToggle = Instance.new("TextButton")
+HeadOnlyToggle.Name = "HeadOnlyToggle"
+HeadOnlyToggle.Text = "Celuj tylko w głowę: OFF"
+HeadOnlyToggle.Size = UDim2.new(0, 200, 0, 28)
+HeadOnlyToggle.Position = UDim2.new(0, 10, 0, 85)
+HeadOnlyToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+HeadOnlyToggle.BackgroundTransparency = 0.2
+HeadOnlyToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+HeadOnlyToggle.Font = Enum.Font.GothamBold
+HeadOnlyToggle.TextSize = 16
+HeadOnlyToggle.Parent = AimbotMenu
+
+-- Stan aimbota
+local aimbotEnabled = false
+local aimbotFOV = 60
+local aimbotHeadOnly = false
+
+btnAimbot.MouseButton1Click:Connect(function()
+    AimbotMenu.Visible = not AimbotMenu.Visible
+end)
+
+AimbotToggle.MouseButton1Click:Connect(function()
+    aimbotEnabled = not aimbotEnabled
+    AimbotToggle.Text = "Aimbot: " .. (aimbotEnabled and "ON" or "OFF")
+    updateStatus("Aimbot " .. (aimbotEnabled and "włączony" or "wyłączony"), Color3.fromRGB(180, 180, 180))
+end)
+
+FOVBox.FocusLost:Connect(function(enter)
+    local val = tonumber(FOVBox.Text)
+    if val and val > 0 and val <= 360 then
+        aimbotFOV = val
+        updateStatus("Aimbot FOV ustawiony na "..val, Color3.fromRGB(180, 180, 180))
+    else
+        FOVBox.Text = tostring(aimbotFOV)
+    end
+end)
+
+HeadOnlyToggle.MouseButton1Click:Connect(function()
+    aimbotHeadOnly = not aimbotHeadOnly
+    HeadOnlyToggle.Text = "Celuj tylko w głowę: " .. (aimbotHeadOnly and "ON" or "OFF")
+    updateStatus("Celowanie w głowę: "..(aimbotHeadOnly and "ON" or "OFF"), Color3.fromRGB(180, 180, 180))
+end)
+
+-- Funkcja szukania najbliższego przeciwnika w FOV
+local function getClosestEnemyInFOV()
+    if not player.Character or not player.Character:FindFirstChild("Head") then return nil end
+    local myHead = player.Character.Head
+    local myPos, onScreen = camera:WorldToViewportPoint(myHead.Position)
+    if not onScreen then return nil end
+    local closest, minDist = nil, math.huge
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= player and p.Team ~= player.Team and p.Character and p.Character:FindFirstChild("Head") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+            local targetPart = aimbotHeadOnly and p.Character:FindFirstChild("Head") or p.Character:FindFirstChild("HumanoidRootPart")
+            if targetPart then
+                local pos, visible = camera:WorldToViewportPoint(targetPart.Position)
+                if visible then
+                    local dist = (Vector2.new(pos.X, pos.Y) - Vector2.new(myPos.X, myPos.Y)).Magnitude
+                    local fovPx = math.tan(math.rad(aimbotFOV/2)) * camera.ViewportSize.X / (2*math.tan(math.rad(camera.FieldOfView/2)))
+                    if dist < fovPx and dist < minDist then
+                        minDist = dist
+                        closest = targetPart
+                    end
+                end
+            end
+        end
+    end
+    return closest
+end
+
+-- Logika aimbota (RenderStepped)
+RunService.RenderStepped:Connect(function()
+    if aimbotEnabled then
+        local target = getClosestEnemyInFOV()
+        if target then
+            local camPos = camera.CFrame.Position
+            camera.CFrame = CFrame.new(camPos, target.Position)
+        end
+    end
+end)
 
 -- Aktualizacja rozmiaru canvas
 local function updateCanvasSize()
@@ -287,7 +419,7 @@ MinimizeButton.MouseButton1Click:Connect(function()
     })
     tween:Play()
     
-    MinimizeButton.Text = isMinimized and "+" or "−"
+    MinimizeButton.Text = isMinimized and "+" or "-"
 end)
 
 -- Funkcje statusu
@@ -307,11 +439,14 @@ local noRecoilEnabled = false
 local fastFireConnection
 btnFastFire.MouseButton1Click:Connect(function()
     fastFireEnabled = not fastFireEnabled
-    btnFastFire.Text = "🔥 Fast Fire: " .. (fastFireEnabled and "ON" or "OFF")
+    btnFastFire.Text = "Fast Fire: " .. (fastFireEnabled and "ON" or "OFF")
     
     if fastFireEnabled then
         updateStatus("Fast Fire activated", Color3.fromRGB(255, 150, 150))
-        fastFireConnection = spawn(function()
+        if fastFireConnection and coroutine.status(fastFireConnection) ~= "dead" then
+            coroutine.close(fastFireConnection)
+        end
+        fastFireConnection = coroutine.create(function()
             while fastFireEnabled do
                 pcall(function()
                     for _, v in pairs(ReplicatedStorage.Weapons:GetDescendants()) do
@@ -325,8 +460,13 @@ btnFastFire.MouseButton1Click:Connect(function()
                 wait(0.3)
             end
         end)
+        coroutine.resume(fastFireConnection)
     else
         updateStatus("Fast Fire deactivated", Color3.fromRGB(255, 100, 100))
+        if fastFireConnection and coroutine.status(fastFireConnection) ~= "dead" then
+            fastFireEnabled = false
+            coroutine.close(fastFireConnection)
+        end
     end
 end)
 
@@ -334,7 +474,7 @@ end)
 local infAmmoConnection
 btnInfAmmo.MouseButton1Click:Connect(function()
     infAmmoEnabled = not infAmmoEnabled
-    btnInfAmmo.Text = "∞ Infinite Ammo: " .. (infAmmoEnabled and "ON" or "OFF")
+    btnInfAmmo.Text = "Infinite Ammo: " .. (infAmmoEnabled and "ON" or "OFF")
     
     if infAmmoEnabled then
         updateStatus("Infinite Ammo activated", Color3.fromRGB(150, 200, 255))
@@ -466,7 +606,7 @@ end
 
 btnEnemyFollow.MouseButton1Click:Connect(function()
     enemyFollowEnabled = not enemyFollowEnabled
-    btnEnemyFollow.Text = "🎯 Enemy Follow: " .. (enemyFollowEnabled and "ON" or "OFF")
+    btnEnemyFollow.Text = "Enemy Follow: " .. (enemyFollowEnabled and "ON" or "OFF")
     
     if enemyFollowEnabled then
         updateStatus("Enemy Follow activated", Color3.fromRGB(255, 200, 100))
@@ -588,11 +728,15 @@ local espConnection
 
 btnESP.MouseButton1Click:Connect(function()
     espEnabled = not espEnabled
-    btnESP.Text = "👁️ ESP: " .. (espEnabled and "ON" or "OFF")
+    btnESP.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
 
     if espEnabled then
         updateStatus("ESP activated", Color3.fromRGB(150, 255, 150))
-        espConnection = RunService:BindToRenderStep("ESP", Enum.RenderPriority.Camera.Value, function()
+        if espConnection then
+            RunService:UnbindFromRenderStep("ESP")
+            espConnection = nil
+        end
+        espConnection = RunService.RenderStepped:Connect(function()
             for plr, drawings in pairs(espCache) do
                 if espSettings.teamcheck and plr.Team == player.Team then
                     drawings.box.Visible = false
@@ -605,9 +749,10 @@ btnESP.MouseButton1Click:Connect(function()
     else
         updateStatus("ESP deactivated", Color3.fromRGB(100, 200, 100))
         if espConnection then
-            RunService:UnbindFromRenderStep("ESP")
+            espConnection:Disconnect()
             espConnection = nil
         end
+        RunService:UnbindFromRenderStep("ESP")
         for _, drawings in pairs(espCache) do
             drawings.box.Visible = false
             drawings.boxoutline.Visible = false
@@ -619,7 +764,7 @@ end)
 local noRecoilConnection
 btnNoRecoil.MouseButton1Click:Connect(function()
     noRecoilEnabled = not noRecoilEnabled
-    btnNoRecoil.Text = "🎯 No Recoil: " .. (noRecoilEnabled and "ON" or "OFF")
+    btnNoRecoil.Text = "No Recoil: " .. (noRecoilEnabled and "ON" or "OFF")
     
     if noRecoilEnabled then
         updateStatus("No Recoil activated", Color3.fromRGB(200, 150, 255))
