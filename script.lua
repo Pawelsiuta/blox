@@ -137,7 +137,7 @@ ContentPadding.PaddingTop = UDim.new(0, 10)
 ContentPadding.PaddingBottom = UDim.new(0, 10)
 ContentPadding.Parent = ContentFrame
 
--- Funkcja tworzenia przycisków
+-- Funkcja tworzenia przycisków (wszystkie napisy białe)
 local function createButton(text, layoutOrder, color)
     local buttonFrame = Instance.new("Frame")
     buttonFrame.Name = text .. "Frame"
@@ -318,7 +318,11 @@ local aimbotHeadOnly = false
 
 btnAimbot.MouseButton1Click:Connect(function()
     AimbotMenu.Visible = not AimbotMenu.Visible
-    updateStatus(AimbotMenu.Visible and "Aimbot menu opened" or "Aimbot menu closed")
+    if AimbotMenu.Visible then
+        updateStatus("Aimbot menu opened")
+    else
+        updateStatus("Aimbot menu closed")
+    end
 end)
 
 AimbotToggle.MouseButton1Click:Connect(function()
@@ -436,18 +440,27 @@ CloseButton.MouseButton1Click:Connect(function()
     end)
 end)
 
--- Minimize functionality
+-- Animacja zwijania/rozwijania menu
 local isMinimized = false
 MinimizeButton.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
-    local targetSize = isMinimized and UDim2.new(0, 450, 0, 50) or UDim2.new(0, 450, 0, 320)
-    
-    local tween = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
-        Size = targetSize
-    })
-    tween:Play()
-    
-    MinimizeButton.Text = isMinimized and "+" or "-"
+    if isMinimized then
+        local tween = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+            Size = UDim2.new(0, 450, 0, 50)
+        })
+        tween:Play()
+        tween.Completed:Connect(function()
+            MainFrame.Visible = false
+            MinimizeButton.Text = "+"
+        end)
+    else
+        MainFrame.Visible = true
+        local tween = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+            Size = UDim2.new(0, 450, 0, 320)
+        })
+        tween:Play()
+        MinimizeButton.Text = "-"
+    end
 end)
 
 -- Fast Fire System
@@ -478,10 +491,7 @@ btnFastFire.MouseButton1Click:Connect(function()
         coroutine.resume(fastFireThread)
     else
         updateStatus("Fast Fire deactivated")
-        if fastFireThread and coroutine.status(fastFireThread) ~= "dead" then
-            fastFireEnabled = false
-            coroutine.close(fastFireThread)
-        end
+        fastFireEnabled = false
     end
 end)
 
@@ -805,10 +815,7 @@ btnNoRecoil.MouseButton1Click:Connect(function()
         coroutine.resume(noRecoilThread)
     else
         updateStatus("No Recoil deactivated")
-        if noRecoilThread and coroutine.status(noRecoilThread) ~= "dead" then
-            noRecoilEnabled = false
-            coroutine.close(noRecoilThread)
-        end
+        noRecoilEnabled = false
     end
 end)
 
