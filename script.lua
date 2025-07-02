@@ -119,7 +119,7 @@ ContentFrame.BackgroundTransparency = 0.5
 ContentFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 ContentFrame.BorderSizePixel = 0
 ContentFrame.ScrollBarThickness = 6
-ContentFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
+ContentFrame.ScrollBarImageColor3 = Color3.fromRGB(120, 120, 120)
 ContentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 ContentFrame.Parent = MainFrame
 
@@ -137,8 +137,8 @@ ContentPadding.PaddingTop = UDim.new(0, 10)
 ContentPadding.PaddingBottom = UDim.new(0, 10)
 ContentPadding.Parent = ContentFrame
 
--- Funkcja do tworzenia zwykłych przycisków ON/OFF
-local function createButton(text, layoutOrder, color)
+-- Funkcja do tworzenia przycisków ON/OFF (monochromatyczne, białe napisy)
+local function createButton(text, layoutOrder)
     local buttonFrame = Instance.new("Frame")
     buttonFrame.Name = text .. "Frame"
     buttonFrame.Size = UDim2.new(1, -20, 0, 45)
@@ -149,7 +149,7 @@ local function createButton(text, layoutOrder, color)
     button.Name = text .. "Button"
     button.Text = text .. ": OFF"
     button.Size = UDim2.new(1, 0, 1, 0)
-    button.BackgroundColor3 = color or Color3.fromRGB(60, 60, 60)
+    button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
     button.BackgroundTransparency = 0.3
     button.TextColor3 = Color3.fromRGB(255, 255, 255)
     button.Font = Enum.Font.GothamBold
@@ -161,21 +161,21 @@ local function createButton(text, layoutOrder, color)
     buttonCorner.Parent = button
     local buttonGradient = Instance.new("UIGradient")
     buttonGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, color or Color3.fromRGB(60, 60, 60)),
-        ColorSequenceKeypoint.new(1, color and Color3.new((color.R or 60) * 0.8, (color.G or 60) * 0.8, (color.B or 60) * 0.8) or Color3.fromRGB(45, 45, 65))
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 60, 60)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 40))
     }
     buttonGradient.Rotation = 90
     buttonGradient.Parent = button
     return button
 end
 
--- Tworzenie przycisków ON/OFF
-local btnFastFire = createButton("Fast Fire", 1, Color3.fromRGB(255, 100, 100))
-local btnInfAmmo = createButton("Infinite Ammo", 2, Color3.fromRGB(100, 200, 255))
-local btnEnemyFollow = createButton("Enemy Follow", 3, Color3.fromRGB(255, 200, 100))
-local btnESP = createButton("ESP", 4, Color3.fromRGB(150, 255, 150))
-local btnNoRecoil = createButton("No Recoil", 5, Color3.fromRGB(200, 150, 255))
-local btnAimbot = createButton("Aimbot", 6, Color3.fromRGB(180, 180, 180))
+-- Tworzenie przycisków ON/OFF (monochromatyczne)
+local btnFastFire = createButton("Fast Fire", 1)
+local btnInfAmmo = createButton("Infinite Ammo", 2)
+local btnEnemyFollow = createButton("Enemy Follow", 3)
+local btnESP = createButton("ESP", 4)
+local btnNoRecoil = createButton("No Recoil", 5)
+local btnAimbot = createButton("Aimbot", 6)
 
 -- Fast Fire
 local fastFireEnabled = false
@@ -331,7 +331,7 @@ btnNoRecoil.MouseButton1Click:Connect(function()
 end)
 
 -- Aimbot (bez checkboxa, menu wysuwa się spod przycisku)
-local btnAimbot = createButton("Aimbot", 6, Color3.fromRGB(180, 180, 180))
+local btnAimbot = createButton("Aimbot", 6)
 btnAimbot.TextColor3 = Color3.fromRGB(255,255,255)
 btnAimbot.Font = Enum.Font.GothamBold
 btnAimbot.TextSize = 18
