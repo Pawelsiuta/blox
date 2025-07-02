@@ -18,11 +18,11 @@
         ScreenGui.ResetOnSpawn = false
         ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-        -- Główny frame
+        -- Główny frame (dużo większy, np. 70% szerokości i 65% wysokości ekranu)
         local MainFrame = Instance.new("Frame")
         MainFrame.Name = "MainFrame"
-        MainFrame.Size = UDim2.new(0.2, 0, 0.2, 0) -- 1/5 szerokości i 1/5 wysokości ekranu
-        MainFrame.Position = UDim2.new(0.4, 0, 0.4, 0) -- Wyśrodkowanie
+        MainFrame.Size = UDim2.new(0.7, 0, 0.65, 0) -- Duży rozmiar
+        MainFrame.Position = UDim2.new(0.15, 0, 0.175, 0) -- Wyśrodkowanie
         MainFrame.BackgroundColor3 = Color3.fromRGB(24, 26, 34)
         MainFrame.BorderSizePixel = 0
         MainFrame.Parent = ScreenGui
@@ -43,37 +43,37 @@
         MainStroke.Thickness = 2
         MainStroke.Parent = MainFrame
 
-        -- Header
+        -- Header (większy, dopasowany do nowego rozmiaru)
         local HeaderFrame = Instance.new("Frame")
         HeaderFrame.Name = "Header"
-        HeaderFrame.Size = UDim2.new(1, 0, 0, 50)
+        HeaderFrame.Size = UDim2.new(1, 0, 0, 80) -- Wyższy header
         HeaderFrame.Position = UDim2.new(0, 0, 0, 0)
         HeaderFrame.BackgroundColor3 = Color3.fromRGB(24, 26, 34)
         HeaderFrame.BorderSizePixel = 0
         HeaderFrame.Parent = MainFrame
 
-        -- Tytuł
+        -- Tytuł (większy tekst)
         local Title = Instance.new("TextLabel")
         Title.Name = "Title"
         Title.Text = "Aetheris"
-        Title.Size = UDim2.new(1, -100, 1, 0)
-        Title.Position = UDim2.new(0, 20, 0, 0)
+        Title.Size = UDim2.new(1, -140, 1, 0)
+        Title.Position = UDim2.new(0, 30, 0, 0)
         Title.BackgroundTransparency = 1
         Title.TextColor3 = Color3.fromRGB(255, 255, 255)
         Title.Font = Enum.Font.GothamBold
-        Title.TextSize = 18
+        Title.TextSize = 36
         Title.TextXAlignment = Enum.TextXAlignment.Left
         Title.Parent = HeaderFrame
 
-        -- Przycisk zamknięcia
+        -- Przycisk zamknięcia (większy, dopasowany do headera)
         local CloseButton = Instance.new("TextButton")
         CloseButton.Name = "CloseButton"
         CloseButton.Text = "✕"
-        CloseButton.Size = UDim2.new(0, 40, 0, 40)
-        CloseButton.Position = UDim2.new(1, -45, 0, 5)
+        CloseButton.Size = UDim2.new(0, 60, 0, 60)
+        CloseButton.Position = UDim2.new(1, -70, 0, 10)
         CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
         CloseButton.Font = Enum.Font.GothamBold
-        CloseButton.TextSize = 16
+        CloseButton.TextSize = 28
         CloseButton.BorderSizePixel = 0
         CloseButton.Parent = HeaderFrame
 
@@ -82,7 +82,7 @@
             CloseButton.BackgroundColor3 = Color3.new(0,0,0)
             CloseButton.Text = "×"
             CloseButton.Font = Enum.Font.Gotham
-            CloseButton.TextSize = 22
+            CloseButton.TextSize = 32
             CloseButton.TextColor3 = Color3.fromRGB(220,220,220)
             CloseButton.BorderSizePixel = 0
             for _, child in ipairs(CloseButton:GetChildren()) do
@@ -90,15 +90,15 @@
             end
         end
 
-        -- Przycisk minimalizacji
+        -- Przycisk minimalizacji (większy, dopasowany do headera)
         local MinimizeButton = Instance.new("TextButton")
         MinimizeButton.Name = "MinimizeButton"
         MinimizeButton.Text = "−"
-        MinimizeButton.Size = UDim2.new(0, 40, 0, 40)
-        MinimizeButton.Position = UDim2.new(1, -90, 0, 5)
+        MinimizeButton.Size = UDim2.new(0, 60, 0, 60)
+        MinimizeButton.Position = UDim2.new(1, -140, 0, 10)
         MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
         MinimizeButton.Font = Enum.Font.GothamBold
-        MinimizeButton.TextSize = 20
+        MinimizeButton.TextSize = 32
         MinimizeButton.BorderSizePixel = 0
         MinimizeButton.Parent = HeaderFrame
 
