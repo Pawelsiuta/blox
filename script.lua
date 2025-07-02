@@ -167,29 +167,24 @@
             MinimizeButton.Text = isMinimized and "+" or "−"
         end)
 
-        -- === SOLARIS-STYLE GUI REDESIGN ===
-        -- Sidebar with tabs: Aim, Visuals, Gun Mods
-        -- Modern dark theme, light blue accent, no emoji, clean text
+        -- === SOLARIS-STYLE GUI FULL REBUILD ===
+        -- Sidebar: large, bold, spaced, light blue accent for active
+        -- Main: header in rounded blue rectangle, options in dark rounded rectangles, sliders blue on dark, all text white/light gray, Gotham Bold
 
-        -- Remove old tab system and main content frames
+        -- Remove old GUI elements
         if TabFrame then TabFrame:Destroy() end
+        if Sidebar then Sidebar:Destroy() end
+        if ContentArea then ContentArea:Destroy() end
         for _, tab in pairs(Tabs or {}) do if tab then tab:Destroy() end end
 
         -- Sidebar
         local Sidebar = Instance.new("Frame")
         Sidebar.Name = "Sidebar"
-        Sidebar.Size = UDim2.new(0, 120, 1, 0)
+        Sidebar.Size = UDim2.new(0, 140, 1, 0)
         Sidebar.Position = UDim2.new(0, 0, 0, 0)
-        Sidebar.BackgroundColor3 = Color3.fromRGB(30, 32, 40)
+        Sidebar.BackgroundColor3 = Color3.fromRGB(24, 26, 34)
         Sidebar.BorderSizePixel = 0
         Sidebar.Parent = MainFrame
-
-        local SidebarAccent = Instance.new("Frame")
-        SidebarAccent.Size = UDim2.new(1, 0, 0, 2)
-        SidebarAccent.Position = UDim2.new(0, 0, 0, 0)
-        SidebarAccent.BackgroundColor3 = Color3.fromRGB(120, 180, 255)
-        SidebarAccent.BorderSizePixel = 0
-        SidebarAccent.Parent = Sidebar
 
         local tabNames = {"Aim", "Visuals", "Gun Mods"}
         local TabButtons = {}
@@ -199,32 +194,43 @@
             local btn = Instance.new("TextButton")
             btn.Name = name .. "TabButton"
             btn.Text = name
-            btn.Size = UDim2.new(1, 0, 0, 40)
-            btn.Position = UDim2.new(0, 0, 0, 20 + (i-1)*48)
-            btn.BackgroundColor3 = Color3.fromRGB(30, 32, 40)
+            btn.Size = UDim2.new(1, 0, 0, 48)
+            btn.Position = UDim2.new(0, 0, 0, 32 + (i-1)*64)
+            btn.BackgroundColor3 = Color3.fromRGB(24, 26, 34)
             btn.TextColor3 = Color3.fromRGB(180, 200, 255)
             btn.Font = Enum.Font.GothamBold
-            btn.TextSize = 16
+            btn.TextSize = 22
             btn.BorderSizePixel = 0
             btn.AutoButtonColor = false
             btn.Parent = Sidebar
             TabButtons[name] = btn
             btn.MouseEnter:Connect(function()
-                btn.BackgroundColor3 = Color3.fromRGB(40, 44, 60)
-                btn.TextColor3 = Color3.fromRGB(120, 180, 255)
+                if CurrentTab ~= name then
+                    btn.TextColor3 = Color3.fromRGB(120, 180, 255)
+                end
             end)
             btn.MouseLeave:Connect(function()
-                btn.BackgroundColor3 = Color3.fromRGB(30, 32, 40)
-                btn.TextColor3 = Color3.fromRGB(180, 200, 255)
+                if CurrentTab ~= name then
+                    btn.TextColor3 = Color3.fromRGB(180, 200, 255)
+                end
             end)
         end
+
+        -- Accent bar for active tab
+        local AccentBar = Instance.new("Frame")
+        AccentBar.Name = "AccentBar"
+        AccentBar.Size = UDim2.new(0, 6, 0, 48)
+        AccentBar.Position = UDim2.new(0, 0, 0, 32)
+        AccentBar.BackgroundColor3 = Color3.fromRGB(120, 180, 255)
+        AccentBar.BorderSizePixel = 0
+        AccentBar.Parent = Sidebar
 
         -- Main content area
         local ContentArea = Instance.new("Frame")
         ContentArea.Name = "ContentArea"
-        ContentArea.Size = UDim2.new(1, -130, 1, -20)
-        ContentArea.Position = UDim2.new(0, 130, 0, 10)
-        ContentArea.BackgroundColor3 = Color3.fromRGB(22, 24, 32)
+        ContentArea.Size = UDim2.new(1, -160, 1, -32)
+        ContentArea.Position = UDim2.new(0, 150, 0, 16)
+        ContentArea.BackgroundTransparency = 1
         ContentArea.BorderSizePixel = 0
         ContentArea.Parent = MainFrame
 
@@ -247,8 +253,12 @@
                 frame.Visible = (name == tabName)
             end
             for name, btn in pairs(TabButtons) do
-                btn.TextColor3 = (name == tabName) and Color3.fromRGB(120, 180, 255) or Color3.fromRGB(180, 200, 255)
-                btn.BackgroundColor3 = (name == tabName) and Color3.fromRGB(40, 44, 60) or Color3.fromRGB(30, 32, 40)
+                local isActive = (name == tabName)
+                btn.TextColor3 = isActive and Color3.fromRGB(255,255,255) or Color3.fromRGB(180, 200, 255)
+                btn.BackgroundColor3 = isActive and Color3.fromRGB(30, 40, 60) or Color3.fromRGB(24, 26, 34)
+                if isActive then
+                    AccentBar.Position = UDim2.new(0, 0, 0, btn.Position.Y.Offset)
+                end
             end
             CurrentTab = tabName
         end
@@ -259,19 +269,126 @@
         end
         switchTab("Aim")
 
-        -- Section header helper
-        local function addSectionHeader(parent, text)
-            local header = Instance.new("TextLabel")
-            header.Text = text
-            header.Size = UDim2.new(1, 0, 0, 28)
-            header.BackgroundTransparency = 1
-            header.TextColor3 = Color3.fromRGB(120, 180, 255)
-            header.Font = Enum.Font.GothamBold
-            header.TextSize = 15
-            header.TextXAlignment = Enum.TextXAlignment.Left
-            header.Parent = parent
-            return header
+        -- Helper: rounded frame
+        local function roundedFrame(parent, color, height, pad)
+            local f = Instance.new("Frame")
+            f.Size = UDim2.new(1, 0, 0, height)
+            f.BackgroundColor3 = color
+            f.BorderSizePixel = 0
+            f.Parent = parent
+            local c = Instance.new("UICorner")
+            c.CornerRadius = UDim.new(0, 12)
+            c.Parent = f
+            if pad then
+                local p = Instance.new("UIPadding")
+                p.PaddingLeft = UDim.new(0, pad)
+                p.PaddingRight = UDim.new(0, pad)
+                p.PaddingTop = UDim.new(0, pad)
+                p.PaddingBottom = UDim.new(0, pad)
+                p.Parent = f
+            end
+            return f
         end
+
+        -- AIM TAB (example, repeat for Visuals/Gun Mods)
+        local aimTab = Tabs["Aim"]
+
+        -- Header
+        local header = roundedFrame(aimTab, Color3.fromRGB(120, 180, 255), 44)
+        header.Position = UDim2.new(0, 0, 0, 0)
+        header.Size = UDim2.new(1, 0, 0, 44)
+        local headerLabel = Instance.new("TextLabel")
+        headerLabel.Text = "Aimbot: ON"
+        headerLabel.Size = UDim2.new(1, 0, 1, 0)
+        headerLabel.BackgroundTransparency = 1
+        headerLabel.TextColor3 = Color3.fromRGB(255,255,255)
+        headerLabel.Font = Enum.Font.GothamBold
+        headerLabel.TextSize = 20
+        headerLabel.Parent = header
+        headerLabel.TextXAlignment = Enum.TextXAlignment.Center
+        headerLabel.TextYAlignment = Enum.TextYAlignment.Center
+
+        -- Target Part
+        local partFrame = roundedFrame(aimTab, Color3.fromRGB(40, 42, 54), 38, 12)
+        partFrame.Position = UDim2.new(0, 0, 0, 56)
+        local partLabel = Instance.new("TextLabel")
+        partLabel.Text = "Target Part:"
+        partLabel.Size = UDim2.new(0.5, 0, 1, 0)
+        partLabel.BackgroundTransparency = 1
+        partLabel.TextColor3 = Color3.fromRGB(200, 210, 230)
+        partLabel.Font = Enum.Font.GothamBold
+        partLabel.TextSize = 15
+        partLabel.TextXAlignment = Enum.TextXAlignment.Left
+        partLabel.Parent = partFrame
+        local partValue = Instance.new("TextLabel")
+        partValue.Text = "Head"
+        partValue.Size = UDim2.new(0.5, 0, 1, 0)
+        partValue.Position = UDim2.new(0.5, 0, 0, 0)
+        partValue.BackgroundTransparency = 1
+        partValue.TextColor3 = Color3.fromRGB(180, 200, 255)
+        partValue.Font = Enum.Font.GothamBold
+        partValue.TextSize = 15
+        partValue.TextXAlignment = Enum.TextXAlignment.Right
+        partValue.Parent = partFrame
+
+        -- FOV
+        local fovLabel = Instance.new("TextLabel")
+        fovLabel.Text = "FOV: 120"
+        fovLabel.Size = UDim2.new(1, 0, 0, 24)
+        fovLabel.Position = UDim2.new(0, 0, 0, 104)
+        fovLabel.BackgroundTransparency = 1
+        fovLabel.TextColor3 = Color3.fromRGB(200, 210, 230)
+        fovLabel.Font = Enum.Font.GothamBold
+        fovLabel.TextSize = 15
+        fovLabel.TextXAlignment = Enum.TextXAlignment.Left
+        fovLabel.Parent = aimTab
+
+        local fovSliderFrame = roundedFrame(aimTab, Color3.fromRGB(40, 42, 54), 28, 6)
+        fovSliderFrame.Position = UDim2.new(0, 0, 0, 132)
+        local fovBar = Instance.new("Frame")
+        fovBar.Size = UDim2.new(0.33, 0, 1, 0)
+        fovBar.BackgroundColor3 = Color3.fromRGB(120, 180, 255)
+        fovBar.BorderSizePixel = 0
+        fovBar.Parent = fovSliderFrame
+        local fovCorner = Instance.new("UICorner")
+        fovCorner.CornerRadius = UDim.new(0, 8)
+        fovCorner.Parent = fovBar
+
+        -- Smoothness
+        local smoothLabel = Instance.new("TextLabel")
+        smoothLabel.Text = "Smoothness: 0.2"
+        smoothLabel.Size = UDim2.new(1, 0, 0, 24)
+        smoothLabel.Position = UDim2.new(0, 0, 0, 172)
+        smoothLabel.BackgroundTransparency = 1
+        smoothLabel.TextColor3 = Color3.fromRGB(200, 210, 230)
+        smoothLabel.Font = Enum.Font.GothamBold
+        smoothLabel.TextSize = 15
+        smoothLabel.TextXAlignment = Enum.TextXAlignment.Left
+        smoothLabel.Parent = aimTab
+
+        local smoothSliderFrame = roundedFrame(aimTab, Color3.fromRGB(40, 42, 54), 28, 6)
+        smoothSliderFrame.Position = UDim2.new(0, 0, 0, 200)
+        local smoothBar = Instance.new("Frame")
+        smoothBar.Size = UDim2.new(0.2, 0, 1, 0)
+        smoothBar.BackgroundColor3 = Color3.fromRGB(120, 180, 255)
+        smoothBar.BorderSizePixel = 0
+        smoothBar.Parent = smoothSliderFrame
+        local smoothCorner = Instance.new("UICorner")
+        smoothCorner.CornerRadius = UDim.new(0, 8)
+        smoothCorner.Parent = smoothBar
+
+        -- Keybind
+        local keybindFrame = roundedFrame(aimTab, Color3.fromRGB(40, 42, 54), 38, 12)
+        keybindFrame.Position = UDim2.new(0, 0, 0, 240)
+        local keybindLabel = Instance.new("TextLabel")
+        keybindLabel.Text = "Aimbot Keybind: RightMouseButton"
+        keybindLabel.Size = UDim2.new(1, 0, 1, 0)
+        keybindLabel.BackgroundTransparency = 1
+        keybindLabel.TextColor3 = Color3.fromRGB(180, 200, 255)
+        keybindLabel.Font = Enum.Font.GothamBold
+        keybindLabel.TextSize = 15
+        keybindLabel.TextXAlignment = Enum.TextXAlignment.Center
+        keybindLabel.Parent = keybindFrame
 
         -- === AIMBOT TAB & SETTINGS ===
 
