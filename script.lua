@@ -1,4 +1,4 @@
--- Arsenal Game Script - Improved Version
+-- Arsenal Game Script - Full Clean Monochrome Version
 local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -27,20 +27,10 @@ MainFrame.BorderSizePixel = 0
 MainFrame.Parent = ScreenGui
 MainFrame.ClipsDescendants = true
 
--- Gradient dla tła
-local MainGradient = Instance.new("UIGradient")
-MainGradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 40, 40)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 60, 60))
-}
-MainGradient.Rotation = 45
-MainGradient.Parent = MainFrame
-
 local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 12)
 MainCorner.Parent = MainFrame
 
--- Stroke (ramka)
 local MainStroke = Instance.new("UIStroke")
 MainStroke.Color = Color3.fromRGB(80, 80, 80)
 MainStroke.Thickness = 2
@@ -60,7 +50,6 @@ local HeaderCorner = Instance.new("UICorner")
 HeaderCorner.CornerRadius = UDim.new(0, 12)
 HeaderCorner.Parent = HeaderFrame
 
--- Główny napis na środku
 local Title = Instance.new("TextLabel")
 Title.Name = "Title"
 Title.Text = "ARSENAL HUB"
@@ -74,7 +63,6 @@ Title.TextXAlignment = Enum.TextXAlignment.Center
 Title.TextYAlignment = Enum.TextYAlignment.Center
 Title.Parent = HeaderFrame
 
--- Przycisk zamknięcia
 local CloseButton = Instance.new("TextButton")
 CloseButton.Name = "CloseButton"
 CloseButton.Text = "X"
@@ -87,12 +75,10 @@ CloseButton.Font = Enum.Font.GothamBold
 CloseButton.TextSize = 28
 CloseButton.BorderSizePixel = 0
 CloseButton.Parent = HeaderFrame
-
 local CloseCorner = Instance.new("UICorner")
 CloseCorner.CornerRadius = UDim.new(0, 8)
 CloseCorner.Parent = CloseButton
 
--- Przycisk minimalizacji
 local MinimizeButton = Instance.new("TextButton")
 MinimizeButton.Name = "MinimizeButton"
 MinimizeButton.Text = "-"
@@ -105,7 +91,6 @@ MinimizeButton.Font = Enum.Font.GothamBold
 MinimizeButton.TextSize = 20
 MinimizeButton.BorderSizePixel = 0
 MinimizeButton.Parent = HeaderFrame
-
 local MinimizeCorner = Instance.new("UICorner")
 MinimizeCorner.CornerRadius = UDim.new(0, 8)
 MinimizeCorner.Parent = MinimizeButton
@@ -123,7 +108,6 @@ ContentFrame.ScrollBarImageColor3 = Color3.fromRGB(120, 120, 120)
 ContentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 ContentFrame.Parent = MainFrame
 
--- Layout dla przycisków
 local ButtonLayout = Instance.new("UIListLayout")
 ButtonLayout.SortOrder = Enum.SortOrder.LayoutOrder
 ButtonLayout.Padding = UDim.new(0, 10)
@@ -131,13 +115,12 @@ ButtonLayout.FillDirection = Enum.FillDirection.Vertical
 ButtonLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 ButtonLayout.Parent = ContentFrame
 
--- Padding dla content
 local ContentPadding = Instance.new("UIPadding")
 ContentPadding.PaddingTop = UDim.new(0, 10)
 ContentPadding.PaddingBottom = UDim.new(0, 10)
 ContentPadding.Parent = ContentFrame
 
--- Funkcja do tworzenia przycisków ON/OFF (monochromatyczne, białe napisy)
+-- Funkcja do tworzenia przycisków ON/OFF
 local function createButton(text, layoutOrder)
     local buttonFrame = Instance.new("Frame")
     buttonFrame.Name = text .. "Frame"
@@ -169,7 +152,7 @@ local function createButton(text, layoutOrder)
     return button
 end
 
--- Tworzenie przycisków ON/OFF (monochromatyczne)
+-- Tworzenie przycisków
 local btnFastFire = createButton("Fast Fire", 1)
 local btnInfAmmo = createButton("Infinite Ammo", 2)
 local btnEnemyFollow = createButton("Enemy Follow", 3)
