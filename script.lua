@@ -600,6 +600,142 @@
 
     print("Arsenal Hub loaded! Press F1 to toggle visibility.")
 
+    -- === WORKING ESP SYSTEM (from dzialajacy esp.lua) ===
+    local espSettings = {
+        defaultcolor = Color3.fromRGB(255, 0, 0),
+        teamcheck = false,
+        teamcolor = true
+    }
+
+    local newVector2, newColor3, newDrawing = Vector2.new, Color3.new, Drawing.new
+    local tan, rad = math.tan, math.rad
+    local round = function(...) 
+        local a = {}
+        for i,v in next, table.pack(...) do 
+            a[i] = math.round(v) 
+        end 
+        return unpack(a) 
+    end
+    local wtvp = function(...) 
+        local a, b = camera:WorldToViewportPoint(...) 
+        return newVector2(a.X, a.Y), b, a.Z 
+    end
+
+    local espCache = {}
+
+    local function createEsp(plr)
+        local drawings = {}
+        drawings.box = newDrawing("Square")
+        drawings.box.Thickness = 2
+        drawings.box.Filled = false
+        drawings.box.Color = espSettings.defaultcolor
+        drawings.box.Visible = false
+        drawings.box.ZIndex = 2
+
+        drawings.boxoutline = newDrawing("Square")
+        drawings.boxoutline.Thickness = 4
+        drawings.boxoutline.Filled = false
+        drawings.boxoutline.Color = newColor3()
+        drawings.boxoutline.Visible = false
+        drawings.boxoutline.ZIndex = 1
+
+        espCache[plr] = drawings
+    end
+
+    local function removeEsp(plr)
+        if espCache[plr] then
+            for _, drawing in pairs(espCache[plr]) do
+                drawing:Remove()
+            end
+            espCache[plr] = nil
+        end
+    end
+
+    local function updateEsp(plr, esp)
+        local character = plr.Character
+        if character then
+            local rootPart = character:FindFirstChild("HumanoidRootPart")
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            if rootPart and humanoid then
+                local position, visible, depth = wtvp(rootPart.Position)
+                esp.box.Visible = visible
+                esp.boxoutline.Visible = visible
+
+                if visible then
+                    local height = humanoid.HipHeight * 2 + 2
+                    local width = 2
+                    local scaleFactor = 1 / (depth * tan(rad(camera.FieldOfView / 2)) * 2) * 1000
+                    local boxWidth, boxHeight = round(width * scaleFactor, height * scaleFactor)
+                    local x, y = round(position.X, position.Y)
+
+                    esp.box.Size = newVector2(boxWidth, boxHeight)
+                    esp.box.Position = newVector2(round(x - boxWidth / 2), round(y - boxHeight / 2))
+                    esp.box.Color = espSettings.teamcolor and plr.TeamColor.Color or espSettings.defaultcolor
+
+                    esp.boxoutline.Size = esp.box.Size
+                    esp.boxoutline.Position = esp.box.Position
+                end
+            else
+                esp.box.Visible = false
+                esp.boxoutline.Visible = false
+            end
+        else
+            esp.box.Visible = false
+            esp.boxoutline.Visible = false
+        end
+    end
+
+    -- Initialize ESP for existing players
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= player then
+            createEsp(plr)
+        end
+    end
+
+    Players.PlayerAdded:Connect(function(plr)
+        if plr ~= player then
+            createEsp(plr)
+        end
+    end)
+
+    Players.PlayerRemoving:Connect(function(plr)
+        removeEsp(plr)
+    end)
+
+    local espConnection
+
+    -- Replace ESP button logic to use working ESP
+    do
+        local btn = btnESP or Instance.new("TextButton")
+        btn.MouseButton1Click:Connect(function()
+            espEnabled = not espEnabled
+            btn.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
+            if espEnabled then
+                updateStatus("ESP activated", Color3.fromRGB(150, 255, 150))
+                espConnection = RunService:BindToRenderStep("ESP", Enum.RenderPriority.Camera.Value, function()
+                    for plr, drawings in pairs(espCache) do
+                        if espSettings.teamcheck and plr.Team == player.Team then
+                            drawings.box.Visible = false
+                            drawings.boxoutline.Visible = false
+                        else
+                            updateEsp(plr, drawings)
+                        end
+                    end
+                end)
+            else
+                updateStatus("ESP deactivated", Color3.fromRGB(100, 200, 100))
+                if espConnection then
+                    RunService:UnbindFromRenderStep("ESP")
+                    espConnection = nil
+                end
+                for _, drawings in pairs(espCache) do
+                    drawings.box.Visible = false
+                    drawings.boxoutline.Visible = false
+                end
+            end
+        end)
+    end
+
     -- === ESP SETTINGS & TAB ===
     local espEnabled = false
     local boxESPEnabled = false
