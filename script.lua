@@ -21,7 +21,8 @@ local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 450, 0, 320)
 MainFrame.Position = UDim2.new(0.5, -225, 0.5, -160)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+MainFrame.BackgroundTransparency = 0.4
 MainFrame.BorderSizePixel = 0
 MainFrame.Parent = ScreenGui
 MainFrame.ClipsDescendants = true
@@ -29,8 +30,8 @@ MainFrame.ClipsDescendants = true
 -- Gradient dla tła
 local MainGradient = Instance.new("UIGradient")
 MainGradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 35)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 35, 50))
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 40, 40)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 60, 60))
 }
 MainGradient.Rotation = 45
 MainGradient.Parent = MainFrame
@@ -41,7 +42,7 @@ MainCorner.Parent = MainFrame
 
 -- Stroke (ramka)
 local MainStroke = Instance.new("UIStroke")
-MainStroke.Color = Color3.fromRGB(60, 60, 80)
+MainStroke.Color = Color3.fromRGB(80, 80, 80)
 MainStroke.Thickness = 2
 MainStroke.Parent = MainFrame
 
@@ -50,7 +51,8 @@ local HeaderFrame = Instance.new("Frame")
 HeaderFrame.Name = "Header"
 HeaderFrame.Size = UDim2.new(1, 0, 0, 50)
 HeaderFrame.Position = UDim2.new(0, 0, 0, 0)
-HeaderFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+HeaderFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+HeaderFrame.BackgroundTransparency = 0.3
 HeaderFrame.BorderSizePixel = 0
 HeaderFrame.Parent = MainFrame
 
@@ -65,7 +67,7 @@ Title.Text = "🎯 ARSENAL HUB"
 Title.Size = UDim2.new(1, -100, 1, 0)
 Title.Position = UDim2.new(0, 20, 0, 0)
 Title.BackgroundTransparency = 1
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextColor3 = Color3.fromRGB(220, 220, 220)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 18
 Title.TextXAlignment = Enum.TextXAlignment.Left
@@ -77,8 +79,9 @@ CloseButton.Name = "CloseButton"
 CloseButton.Text = "✕"
 CloseButton.Size = UDim2.new(0, 40, 0, 40)
 CloseButton.Position = UDim2.new(1, -45, 0, 5)
-CloseButton.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+CloseButton.BackgroundTransparency = 0.2
+CloseButton.TextColor3 = Color3.fromRGB(230, 230, 230)
 CloseButton.Font = Enum.Font.GothamBold
 CloseButton.TextSize = 16
 CloseButton.BorderSizePixel = 0
@@ -94,8 +97,9 @@ MinimizeButton.Name = "MinimizeButton"
 MinimizeButton.Text = "−"
 MinimizeButton.Size = UDim2.new(0, 40, 0, 40)
 MinimizeButton.Position = UDim2.new(1, -90, 0, 5)
-MinimizeButton.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
-MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+MinimizeButton.BackgroundTransparency = 0.2
+MinimizeButton.TextColor3 = Color3.fromRGB(230, 230, 230)
 MinimizeButton.Font = Enum.Font.GothamBold
 MinimizeButton.TextSize = 20
 MinimizeButton.BorderSizePixel = 0
@@ -110,10 +114,11 @@ local ContentFrame = Instance.new("ScrollingFrame")
 ContentFrame.Name = "ContentFrame"
 ContentFrame.Size = UDim2.new(1, -20, 1, -70)
 ContentFrame.Position = UDim2.new(0, 10, 0, 60)
-ContentFrame.BackgroundTransparency = 1
+ContentFrame.BackgroundTransparency = 0.5
+ContentFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 ContentFrame.BorderSizePixel = 0
 ContentFrame.ScrollBarThickness = 6
-ContentFrame.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 100)
+ContentFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
 ContentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 ContentFrame.Parent = MainFrame
 
@@ -144,8 +149,9 @@ local function createButton(text, layoutOrder, color)
     button.Name = text .. "Button"
     button.Text = text
     button.Size = UDim2.new(1, 0, 1, 0)
-    button.BackgroundColor3 = color or Color3.fromRGB(60, 60, 80)
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    button.BackgroundTransparency = 0.3
+    button.TextColor3 = Color3.fromRGB(220, 220, 220)
     button.Font = Enum.Font.Gotham
     button.TextSize = 14
     button.BorderSizePixel = 0
@@ -157,8 +163,8 @@ local function createButton(text, layoutOrder, color)
     
     local buttonGradient = Instance.new("UIGradient")
     buttonGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, color or Color3.fromRGB(60, 60, 80)),
-        ColorSequenceKeypoint.new(1, color and Color3.new(color.R * 0.8, color.G * 0.8, color.B * 0.8) or Color3.fromRGB(45, 45, 65))
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 60, 60)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 40))
     }
     buttonGradient.Rotation = 90
     buttonGradient.Parent = button
@@ -166,14 +172,14 @@ local function createButton(text, layoutOrder, color)
     -- Hover effect
     button.MouseEnter:Connect(function()
         local tween = TweenService:Create(button, TweenInfo.new(0.2), {
-            BackgroundColor3 = color and Color3.new(color.R * 1.2, color.G * 1.2, color.B * 1.2) or Color3.fromRGB(80, 80, 100)
+            BackgroundColor3 = Color3.fromRGB(80, 80, 80)
         })
         tween:Play()
     end)
     
     button.MouseLeave:Connect(function()
         local tween = TweenService:Create(button, TweenInfo.new(0.2), {
-            BackgroundColor3 = color or Color3.fromRGB(60, 60, 80)
+            BackgroundColor3 = Color3.fromRGB(60, 60, 60)
         })
         tween:Play()
     end)
@@ -186,7 +192,8 @@ local StatusFrame = Instance.new("Frame")
 StatusFrame.Name = "StatusFrame"
 StatusFrame.Size = UDim2.new(1, -20, 0, 30)
 StatusFrame.Position = UDim2.new(0, 10, 1, -40)
-StatusFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+StatusFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+StatusFrame.BackgroundTransparency = 0.3
 StatusFrame.BorderSizePixel = 0
 StatusFrame.Parent = MainFrame
 
@@ -200,7 +207,7 @@ StatusLabel.Text = "Ready"
 StatusLabel.Size = UDim2.new(1, -10, 1, 0)
 StatusLabel.Position = UDim2.new(0, 5, 0, 0)
 StatusLabel.BackgroundTransparency = 1
-StatusLabel.TextColor3 = Color3.fromRGB(150, 255, 150)
+StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 StatusLabel.Font = Enum.Font.Gotham
 StatusLabel.TextSize = 12
 StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -286,7 +293,7 @@ end)
 -- Funkcje statusu
 local function updateStatus(message, color)
     StatusLabel.Text = message
-    StatusLabel.TextColor3 = color or Color3.fromRGB(150, 255, 150)
+    StatusLabel.TextColor3 = color or Color3.fromRGB(200, 200, 200)
 end
 
 -- Zmienne stanu
