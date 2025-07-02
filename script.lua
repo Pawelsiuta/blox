@@ -578,8 +578,10 @@
     -- Main aimbot loop
     RunService.RenderStepped:Connect(function()
         if not aimbotEnabled then return end
+        if not drawingAvailable then return end
         if not aimbotKeyHeld then return end
         if aimbotSilent then return end -- silent aim handles aiming
+        print("[Arsenal Hub] Aimbot running")
         local target = getTarget()
         if target then
             aimAt(target)
@@ -606,6 +608,33 @@
     local dynamicScalingEnabled = false
     local teamCheckEnabled = false
     local colorByTeamEnabled = false
+
+    -- Drawing Library check
+    local drawingAvailable = false
+    local drawingTest
+    pcall(function()
+        drawingTest = Drawing.new("Text")
+        drawingTest.Text = "Drawing Test"
+        drawingTest.Visible = false
+        drawingTest:Remove()
+        drawingAvailable = true
+    end)
+    if not drawingAvailable then
+        warn("[Arsenal Hub] Drawing Library is not available! ESP and aimbot visuals will not work.")
+        -- Show notification in GUI
+        local notif = Instance.new("TextLabel")
+        notif.Text = "[Arsenal Hub] Drawing Library is not available! ESP and aimbot visuals will not work."
+        notif.Size = UDim2.new(1, 0, 0, 32)
+        notif.Position = UDim2.new(0, 0, 0, 0)
+        notif.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+        notif.TextColor3 = Color3.fromRGB(255,255,255)
+        notif.Font = Enum.Font.GothamBold
+        notif.TextSize = 14
+        notif.Parent = MainFrame
+    end
+
+    -- Debug prints for ESP and aimbot
+    print("[Arsenal Hub] Drawing Library available:", drawingAvailable)
 
     -- ESP Tab Content
     local espTab = Tabs["ESP"]
@@ -694,7 +723,9 @@
     end
 
     local function updateESP()
+        if not drawingAvailable then return end
         if not _G.espEnabled then clearESP() return end
+        print("[Arsenal Hub] ESP update running")
         for _, plr in pairs(Players:GetPlayers()) do
             if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0 then
                 if teamCheckEnabled and plr.Team == player.Team then
