@@ -520,8 +520,15 @@
 
         RunService:BindToRenderStep("ESP", Enum.RenderPriority.Camera.Value + 1, updateESP)
 
-        -- Use thin font for all headers and buttons
+        -- Apply thin Gotham font to all text elements for a consistent look
         Title.Font = Enum.Font.Gotham
         for _, btn in pairs(TabButtons) do
             btn.Font = Enum.Font.Gotham
+        end
+        for _, tab in pairs(Tabs) do
+            for _, child in ipairs(tab:GetDescendants()) do
+                if child:IsA("TextLabel") or child:IsA("TextButton") then
+                    child.Font = Enum.Font.Gotham
+                end
+            end
         end
