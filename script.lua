@@ -21,8 +21,8 @@
         -- Główny frame
         local MainFrame = Instance.new("Frame")
         MainFrame.Name = "MainFrame"
-        MainFrame.Size = UDim2.new(0, 450, 0, 320)
-        MainFrame.Position = UDim2.new(0.5, -225, 0.5, -160)
+        MainFrame.Size = UDim2.new(0.2, 0, 0.2, 0) -- 1/5 szerokości i 1/5 wysokości ekranu
+        MainFrame.Position = UDim2.new(0.4, 0, 0.4, 0) -- Wyśrodkowanie
         MainFrame.BackgroundColor3 = Color3.fromRGB(24, 26, 34)
         MainFrame.BorderSizePixel = 0
         MainFrame.Parent = ScreenGui
@@ -532,3 +532,4 @@
                 end
             end
         end
+
