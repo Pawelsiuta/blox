@@ -1,535 +1,594 @@
-        -- Arsenal Game Script - Improved Version
-        local CoreGui = game:GetService("CoreGui")
-        local RunService = game:GetService("RunService")
-        local ReplicatedStorage = game:GetService("ReplicatedStorage")
-        local Players = game:GetService("Players")
-        local UserInputService = game:GetService("UserInputService")
-        local TweenService = game:GetService("TweenService")
+-- Aetheris GUI Mockup for Roblox Arsenal (Lua)
+-- Only GUI, no exploit functions yet
+-- Draggable, dark blue theme, open/close with Right Shift
 
-        local player = Players.LocalPlayer
-        local camera = workspace.CurrentCamera
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
 
-        -- All old aimbot tab, scroll frame, toggles, sliders, dropdowns, and legacy button/slider logic have been deleted.
-        -- All new Solaris GUI creation code is now grouped at the top of the script, organized and clean.
-        -- Główne GUI
-        local ScreenGui = Instance.new("ScreenGui")
-        ScreenGui.Name = "ArsenalHubGUI"
-        ScreenGui.Parent = CoreGui
-        ScreenGui.ResetOnSpawn = false
-        ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+-- CONFIG
+local mainColor = Color3.fromRGB(18, 19, 24) -- tło i header ten sam kolor
+local accentColor = Color3.fromRGB(18, 19, 24) -- tło i header ten sam kolor
+local sidebarBorderColor = Color3.fromRGB(40, 40, 50)
+local sidebarInnerColor = Color3.fromRGB(14, 15, 20) -- sidebar ciemniejszy od tła
+local textColor = Color3.fromRGB(160, 170, 190)
+local font = Enum.Font.Code
+local selectedTabColor = Color3.fromRGB(40, 80, 180) -- dark blue for selected tab
 
-        -- Główny frame (dużo większy, np. 70% szerokości i 65% wysokości ekranu)
-        local MainFrame = Instance.new("Frame")
-        MainFrame.Name = "MainFrame"
-        MainFrame.Size = UDim2.new(0.7, 0, 0.65, 0) -- Duży rozmiar
-        MainFrame.Position = UDim2.new(0.15, 0, 0.175, 0) -- Wyśrodkowanie
-        MainFrame.BackgroundColor3 = Color3.fromRGB(24, 26, 34)
-        MainFrame.BorderSizePixel = 0
-        MainFrame.Parent = ScreenGui
-        MainFrame.ClipsDescendants = true
+-- Dodaję globalną zmienną na górze pliku
+local hitPartCurrentOption = "Head"
 
-        -- Gradient dla tła
-        local MainGradient = Instance.new("UIGradient")
-        MainGradient.Color = ColorSequence.new{
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 35)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 35, 50))
+-- Dodaję tablice z labelami do zakładek
+local contentLabels = {"Aim", "Visuals", "Gun Mods"}
+
+-- Remove previous GUI if exists
+if CoreGui:FindFirstChild("AetherisGUI") then
+    CoreGui.AetherisGUI:Destroy()
+end
+
+-- Main ScreenGui
+local gui = Instance.new("ScreenGui")
+gui.Name = "AetherisGUI"
+gui.Parent = CoreGui
+
+gui.ResetOnSpawn = false
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 620, 0, 400)
+mainFrame.Position = UDim2.new(0.5, -310, 0.5, -200)
+mainFrame.BackgroundColor3 = mainColor
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = gui
+
+-- Top Bar (Logo)
+local topBar = Instance.new("Frame")
+topBar.Size = UDim2.new(1, 0, 0, 36)
+topBar.BackgroundColor3 = accentColor
+topBar.BorderSizePixel = 0
+topBar.Parent = mainFrame
+
+local logo = Instance.new("TextLabel")
+logo.Text = "Aetheris"
+logo.Font = font
+logo.TextSize = 28
+logo.TextColor3 = textColor
+logo.BackgroundTransparency = 1
+logo.Position = UDim2.new(0, 16, 0, 0)
+logo.Size = UDim2.new(0, 200, 1, 0)
+logo.TextXAlignment = Enum.TextXAlignment.Left
+logo.Parent = topBar
+
+-- Sidebar bez obramówki, bezpośrednio w mainFrame
+local sidebarWidth = 114 -- szerokość mainFrame minus 20px na marginesy boczne
+local sidebar = Instance.new("Frame")
+sidebar.Size = UDim2.new(0, sidebarWidth, 1, -46) -- -36 (header) -10 (dół)
+sidebar.Position = UDim2.new(0, 10, 0, 40) -- 10px od lewej, 36px od góry (pod headerem)
+sidebar.BackgroundColor3 = sidebarInnerColor
+sidebar.BorderSizePixel = 0
+sidebar.Parent = mainFrame
+sidebar.BackgroundTransparency = 0
+local sidebarCorner = Instance.new("UICorner")
+sidebarCorner.CornerRadius = UDim.new(0, 12)
+sidebarCorner.Parent = sidebar
+
+local tabs = {"Aim", "Visuals", "Gun Mods"}
+local tabButtons = {}
+local selectedTab = 1
+
+for i, tabName in ipairs(tabs) do
+    local btn = Instance.new("TextButton")
+    btn.Text = tabName
+    btn.Font = font
+    btn.TextSize = 16
+    btn.TextColor3 = (i == selectedTab) and selectedTabColor or textColor
+    btn.BackgroundTransparency = 1
+    btn.BorderSizePixel = 0
+    btn.AutoButtonColor = false
+    btn.Size = UDim2.new(1, 0, 0, 48)
+    btn.Position = UDim2.new(0, 0, 0, (i-1)*52)
+    btn.Parent = sidebar
+    tabButtons[i] = btn
+    -- Gradient na zaznaczonym przycisku
+    if i == selectedTab then
+        local grad = Instance.new("UIGradient")
+        grad.Rotation = 45
+        grad.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 80, 180)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(120, 180, 255))
         }
-        MainGradient.Rotation = 45
-        MainGradient.Parent = MainFrame
+        grad.Parent = btn
+    end
+end
 
-        -- Stroke (ramka)
-        local MainStroke = Instance.new("UIStroke")
-        MainStroke.Color = Color3.fromRGB(60, 60, 80)
-        MainStroke.Thickness = 2
-        MainStroke.Parent = MainFrame
+-- Main Content Frame
+local contentFrame = Instance.new("ScrollingFrame")
+contentFrame.Size = UDim2.new(1, -150, 1, -36)
+contentFrame.Position = UDim2.new(0, 150, 0, 36)
+contentFrame.BackgroundColor3 = mainColor
+contentFrame.BorderSizePixel = 0
+contentFrame.BackgroundTransparency = 1
+contentFrame.Parent = mainFrame
+contentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+contentFrame.ScrollBarThickness = 4
+contentFrame.ScrollBarImageColor3 = Color3.fromRGB(40, 80, 180)
+contentFrame.ScrollBarImageTransparency = 0
+contentFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
+contentFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
-        -- Header (większy, dopasowany do nowego rozmiaru)
-        local HeaderFrame = Instance.new("Frame")
-        HeaderFrame.Name = "Header"
-        HeaderFrame.Size = UDim2.new(1, 0, 0, 80) -- Wyższy header
-        HeaderFrame.Position = UDim2.new(0, 0, 0, 0)
-        HeaderFrame.BackgroundColor3 = Color3.fromRGB(24, 26, 34)
-        HeaderFrame.BorderSizePixel = 0
-        HeaderFrame.Parent = MainFrame
+-- Funkcja do aktualizacji zawartości contentFrame w zależności od zakładki
+local function createCheckbox(parent, labelText, pos, default)
+    local row = Instance.new("Frame")
+    row.BackgroundTransparency = 1
+    row.Size = UDim2.new(1, -32, 0, 24)
+    row.Position = pos
+    row.Parent = parent
 
-        -- Tytuł (większy tekst)
-        local Title = Instance.new("TextLabel")
-        Title.Name = "Title"
-        Title.Text = "Aetheris"
-        Title.Size = UDim2.new(1, -140, 1, 0)
-        Title.Position = UDim2.new(0, 30, 0, 0)
-        Title.BackgroundTransparency = 1
-        Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Title.Font = Enum.Font.GothamBold
-        Title.TextSize = 36
-        Title.TextXAlignment = Enum.TextXAlignment.Left
-        Title.Parent = HeaderFrame
+    local checkbox = Instance.new("TextButton")
+    checkbox.Name = labelText .. "Checkbox"
+    checkbox.Size = UDim2.new(0, 18, 0, 18)
+    checkbox.Position = UDim2.new(0, 0, 0, 3)
+    checkbox.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    checkbox.BorderColor3 = Color3.fromRGB(80, 80, 100)
+    checkbox.BorderSizePixel = 1
+    checkbox.AutoButtonColor = false
+    checkbox.Text = ""
+    checkbox.Parent = row
+    local cbCorner = Instance.new("UICorner")
+    cbCorner.CornerRadius = UDim.new(0, 4)
+    cbCorner.Parent = checkbox
 
-        -- Przycisk zamknięcia (większy, dopasowany do headera)
-        local CloseButton = Instance.new("TextButton")
-        CloseButton.Name = "CloseButton"
-        CloseButton.Text = "✕"
-        CloseButton.Size = UDim2.new(0, 60, 0, 60)
-        CloseButton.Position = UDim2.new(1, -70, 0, 10)
-        CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        CloseButton.Font = Enum.Font.GothamBold
-        CloseButton.TextSize = 28
-        CloseButton.BorderSizePixel = 0
-        CloseButton.Parent = HeaderFrame
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new(0, 14, 0, 14)
+    fill.Position = UDim2.new(0, 2, 0, 2)
+    fill.BackgroundColor3 = Color3.fromRGB(40, 80, 180)
+    fill.BackgroundTransparency = 0
+    fill.Visible = false
+    fill.Parent = checkbox
+    local fillCorner = Instance.new("UICorner")
+    fillCorner.CornerRadius = UDim.new(0, 3)
+    fillCorner.Parent = fill
+    local fillGrad = Instance.new("UIGradient")
+    fillGrad.Rotation = 90
+    fillGrad.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(120, 180, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 80, 180))
+    }
+    fillGrad.Parent = fill
 
-        if CloseButton then
-            CloseButton.BackgroundTransparency = 1
-            CloseButton.BackgroundColor3 = Color3.new(0,0,0)
-            CloseButton.Text = "×"
-            CloseButton.Font = Enum.Font.Gotham
-            CloseButton.TextSize = 32
-            CloseButton.TextColor3 = Color3.fromRGB(220,220,220)
-            CloseButton.BorderSizePixel = 0
-            for _, child in ipairs(CloseButton:GetChildren()) do
-                if child:IsA("UIPadding") or child:IsA("UICorner") then child:Destroy() end
-            end
-        end
+    local checked = default or false
+    if checked then
+        fill.Visible = true
+        fill.Size = UDim2.new(0, 14, 0, 14)
+        fill.Position = UDim2.new(0, 2, 0, 2)
+    end
 
-        -- Przycisk minimalizacji (większy, dopasowany do headera)
-        local MinimizeButton = Instance.new("TextButton")
-        MinimizeButton.Name = "MinimizeButton"
-        MinimizeButton.Text = "−"
-        MinimizeButton.Size = UDim2.new(0, 60, 0, 60)
-        MinimizeButton.Position = UDim2.new(1, -140, 0, 10)
-        MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        MinimizeButton.Font = Enum.Font.GothamBold
-        MinimizeButton.TextSize = 32
-        MinimizeButton.BorderSizePixel = 0
-        MinimizeButton.Parent = HeaderFrame
-
-        if MinimizeButton then MinimizeButton.BackgroundTransparency = 1; MinimizeButton.BackgroundColor3 = Color3.new(0,0,0) end
-
-        -- Drag functionality
-        local dragging = false
-        local dragInput, dragStart, startPos
-
-        local function update(input)
-            local delta = input.Position - dragStart
-            MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
-                                        startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-
-        HeaderFrame.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                dragging = true
-                dragStart = input.Position
-                startPos = MainFrame.Position
-
-                input.Changed:Connect(function()
-                    if input.UserInputState == Enum.UserInputState.End then
-                        dragging = false
-                    end
-                end)
-            end
-        end)
-
-        HeaderFrame.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-                dragInput = input
-            end
-        end)
-
-        UserInputService.InputChanged:Connect(function(input)
-            if input == dragInput and dragging then
-                update(input)
-            end
-        end)
-
-        -- Close button functionality
-        CloseButton.MouseButton1Click:Connect(function()
-            local tween = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
+    checkbox.MouseButton1Click:Connect(function()
+        checked = not checked
+        if checked then
+            fill.Visible = true
+            fill.Size = UDim2.new(0, 0, 0, 0)
+            fill.Position = UDim2.new(0, 9, 0, 9)
+            local tween = TweenService:Create(fill, TweenInfo.new(0.10, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 14, 0, 14),
+                Position = UDim2.new(0, 2, 0, 2)
+            })
+            tween:Play()
+        else
+            local tween = TweenService:Create(fill, TweenInfo.new(0.10, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
                 Size = UDim2.new(0, 0, 0, 0),
-                Position = UDim2.new(0.5, 0, 0.5, 0)
+                Position = UDim2.new(0, 9, 0, 9)
             })
             tween:Play()
             tween.Completed:Connect(function()
-                ScreenGui:Destroy()
+                if not checked then fill.Visible = false end
             end)
-        end)
+        end
+    end)
 
-        -- Minimize functionality
-        local isMinimized = false
-        MinimizeButton.MouseButton1Click:Connect(function()
-            isMinimized = not isMinimized
-            local targetSize = isMinimized and UDim2.new(0, 450, 0, 50) or UDim2.new(0, 450, 0, 320)
-            
-            local tween = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
-                Size = targetSize
-            })
-            tween:Play()
-            
-            MinimizeButton.Text = isMinimized and "+" or "−"
-        end)
+    local label = Instance.new("TextLabel")
+    label.Text = labelText
+    label.Font = font
+    label.TextSize = 15
+    label.TextColor3 = textColor
+    label.BackgroundTransparency = 1
+    label.Position = UDim2.new(0, 28, 0, 0)
+    label.Size = UDim2.new(1, -28, 1, 0)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = row
 
-        -- === SOLARIS-STYLE GUI FULL REBUILD ===
-        -- Sidebar: large, bold, spaced, light blue accent for active
-        -- Main: header in rounded blue rectangle, options in dark rounded rectangles, sliders blue on dark, all text white/light gray, Gotham Bold
+    return checkbox
+end
 
-        -- === WORKING ESP SYSTEM (from dzialajacy esp.lua) ===
-        local espSettings = {
-            defaultcolor = Color3.fromRGB(255, 0, 0),
-            teamcheck = false,
-            teamcolor = true
+local function updateContent(tabIndex)
+    -- Wyczyść contentFrame
+    for _, child in ipairs(contentFrame:GetChildren()) do
+        child:Destroy()
+    end
+    if tabIndex == 1 then -- Aim
+        -- Nagłówek "Aimbot"
+        local header = Instance.new("TextLabel")
+        header.Text = "Aimbot"
+        header.Font = font
+        header.TextSize = 16
+        header.TextColor3 = textColor
+        header.BackgroundTransparency = 1
+        header.Position = UDim2.new(0, 16, 0, 16)
+        header.Size = UDim2.new(0, 60, 0, 20)
+        header.TextXAlignment = Enum.TextXAlignment.Left
+        header.Parent = contentFrame
+        -- Linia obok napisu
+        local line = Instance.new("Frame")
+        line.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+        line.BorderSizePixel = 0
+        line.Position = UDim2.new(0, 16 + 60 + 8, 0, 26)
+        line.Size = UDim2.new(1, -(16 + 60 + 24), 0, 2)
+        line.Parent = contentFrame
+        -- Checkbox z napisem
+        local aimbotCheckbox = createCheckbox(contentFrame, "Aimbot", UDim2.new(0, 16, 0, 52), nil)
+        -- Smoothing label + value
+        local smoothingRow = Instance.new("Frame")
+        smoothingRow.BackgroundTransparency = 1
+        smoothingRow.Size = UDim2.new(1, -32, 0, 18)
+        smoothingRow.Position = UDim2.new(0, 16, 0, 82)
+        smoothingRow.Parent = contentFrame
+        -- Napis Smoothing
+        local smoothingLabel = Instance.new("TextLabel")
+        smoothingLabel.Text = "Smoothing"
+        smoothingLabel.Font = font
+        smoothingLabel.TextSize = 15
+        smoothingLabel.TextColor3 = textColor
+        smoothingLabel.BackgroundTransparency = 1
+        smoothingLabel.Position = UDim2.new(0, 0, 0, -2)
+        smoothingLabel.Size = UDim2.new(0, 100, 1, 0)
+        smoothingLabel.TextXAlignment = Enum.TextXAlignment.Left
+        smoothingLabel.Parent = smoothingRow
+        -- Wartość po prawej
+        local smoothingValue = Instance.new("TextLabel")
+        smoothingValue.Text = "5/25"
+        smoothingValue.Font = font
+        smoothingValue.TextSize = 15
+        smoothingValue.TextColor3 = textColor
+        smoothingValue.BackgroundTransparency = 1
+        smoothingValue.Position = UDim2.new(1, -48, 0, 0)
+        smoothingValue.Size = UDim2.new(0, 48, 1, 0)
+        smoothingValue.TextXAlignment = Enum.TextXAlignment.Right
+        smoothingValue.Parent = smoothingRow
+        -- Slider
+        local sliderFrame = Instance.new("Frame")
+        sliderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+        sliderFrame.BorderColor3 = Color3.fromRGB(60, 60, 70)
+        sliderFrame.BorderSizePixel = 1
+        sliderFrame.Position = UDim2.new(0, 0, 0, 22)
+        sliderFrame.Size = UDim2.new(1, 0, 0, 10)
+        sliderFrame.Parent = smoothingRow
+        local sliderFill = Instance.new("Frame")
+        sliderFill.BackgroundColor3 = Color3.fromRGB(40, 80, 180)
+        local sliderGrad = Instance.new("UIGradient")
+        sliderGrad.Rotation = 90
+        sliderGrad.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(120, 180, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 80, 180))
         }
-
-        local newVector2, newColor3, newDrawing = Vector2.new, Color3.new, Drawing.new
-        local tan, rad = math.tan, math.rad
-        local round = function(...) 
-            local a = {}
-            for i,v in next, table.pack(...) do 
-                a[i] = math.round(v) 
-            end 
-            return unpack(a) 
+        sliderGrad.Parent = sliderFill
+        sliderFill.BorderSizePixel = 0
+        sliderFill.Size = UDim2.new(0.2, 0, 1, 0) -- domyślnie 5/25
+        sliderFill.Parent = sliderFrame
+        -- Interaktywność slidera
+        local minValue, maxValue = 0, 25
+        local value = 5
+        local dragging = false
+        local function updateSlider(posX)
+            local rel = math.clamp((posX - sliderFrame.AbsolutePosition.X) / sliderFrame.AbsoluteSize.X, 0, 1)
+            value = math.floor(rel * (maxValue - minValue) + minValue + 0.5)
+            sliderFill.Size = UDim2.new((value-minValue)/(maxValue-minValue), 0, 1, 0)
+            smoothingValue.Text = tostring(value).."/"..tostring(maxValue)
         end
-        local wtvp = function(...) 
-            local a, b = camera:WorldToViewportPoint(...) 
-            return newVector2(a.X, a.Y), b, a.Z 
-        end
-
-        local espCache = {}
-
-        local function createEsp(plr)
-            local drawings = {}
-            drawings.box = newDrawing("Square")
-            drawings.box.Thickness = 2
-            drawings.box.Filled = false
-            drawings.box.Color = espSettings.defaultcolor
-            drawings.box.Visible = false
-            drawings.box.ZIndex = 2
-
-            drawings.boxoutline = newDrawing("Square")
-            drawings.boxoutline.Thickness = 4
-            drawings.boxoutline.Filled = false
-            drawings.boxoutline.Color = newColor3()
-            drawings.boxoutline.Visible = false
-            drawings.boxoutline.ZIndex = 1
-
-            espCache[plr] = drawings
-        end
-
-        local function removeEsp(plr)
-            if espCache[plr] then
-                for _, drawing in pairs(espCache[plr]) do
-                    drawing:Remove()
-                end
-                espCache[plr] = nil
-            end
-        end
-
-        local function updateEsp(plr, esp)
-            local character = plr.Character
-            if character then
-                local rootPart = character:FindFirstChild("HumanoidRootPart")
-                local humanoid = character:FindFirstChildOfClass("Humanoid")
-                if rootPart and humanoid then
-                    local position, visible, depth = wtvp(rootPart.Position)
-                    esp.box.Visible = visible
-                    esp.boxoutline.Visible = visible
-
-                    if visible then
-                        local height = humanoid.HipHeight * 2 + 2
-                        local width = 2
-                        local scaleFactor = 1 / (depth * tan(rad(camera.FieldOfView / 2)) * 2) * 1000
-                        local boxWidth, boxHeight = round(width * scaleFactor, height * scaleFactor)
-                        local x, y = round(position.X, position.Y)
-
-                        esp.box.Size = newVector2(boxWidth, boxHeight)
-                        esp.box.Position = newVector2(round(x - boxWidth / 2), round(y - boxHeight / 2))
-                        esp.box.Color = espSettings.teamcolor and plr.TeamColor.Color or espSettings.defaultcolor
-
-                        esp.boxoutline.Size = esp.box.Size
-                        esp.boxoutline.Position = esp.box.Position
-                    end
-                else
-                    esp.box.Visible = false
-                    esp.boxoutline.Visible = false
-                end
-            else
-                esp.box.Visible = false
-                esp.boxoutline.Visible = false
-            end
-        end
-
-        -- Initialize ESP for existing players
-        for _, plr in pairs(Players:GetPlayers()) do
-            if plr ~= player then
-                createEsp(plr)
-            end
-        end
-
-        Players.PlayerAdded:Connect(function(plr)
-            if plr ~= player then
-                createEsp(plr)
+        sliderFrame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+                mainFrame.Draggable = false
+                updateSlider(input.Position.X)
             end
         end)
-
-        Players.PlayerRemoving:Connect(function(plr)
-            removeEsp(plr)
+        sliderFrame.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+                mainFrame.Draggable = true
+            end
         end)
-
-        local espConnection
-
-        -- Replace ESP button logic to use working ESP
-        do
-            local btn = btnESP or Instance.new("TextButton")
-            btn.MouseButton1Click:Connect(function()
-                espEnabled = not espEnabled
-                btn.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
-                if espEnabled then
-                    updateStatus("ESP activated", Color3.fromRGB(150, 255, 150))
-                    espConnection = RunService:BindToRenderStep("ESP", Enum.RenderPriority.Camera.Value, function()
-                        for plr, drawings in pairs(espCache) do
-                            if espSettings.teamcheck and plr.Team == player.Team then
-                                drawings.box.Visible = false
-                                drawings.boxoutline.Visible = false
-                            else
-                                updateEsp(plr, drawings)
-                            end
-                        end
-                    end)
-                else
-                    updateStatus("ESP deactivated", Color3.fromRGB(100, 200, 100))
-                    if espConnection then
-                        RunService:UnbindFromRenderStep("ESP")
-                        espConnection = nil
-                    end
-                    for _, drawings in pairs(espCache) do
-                        drawings.box.Visible = false
-                        drawings.boxoutline.Visible = false
-                    end
-                end
-            end)
-        end
-
-        -- === ESP SETTINGS & TAB ===
-        local espEnabled = false
-        local boxESPEnabled = false
-        local nameESPEnabled = false
-        local healthbarESPEnabled = false
-        local dynamicScalingEnabled = false
-        local teamCheckEnabled = false
-        local colorByTeamEnabled = false
-
-        -- Drawing Library check
-        local drawingAvailable = false
-        local drawingTest
-        pcall(function()
-            drawingTest = Drawing.new("Text")
-            drawingTest.Text = "Drawing Test"
-            drawingTest.Visible = false
-            drawingTest:Remove()
-            drawingAvailable = true
+        game:GetService("UserInputService").InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                updateSlider(input.Position.X)
+            end
         end)
-        if not drawingAvailable then
-            warn("[Arsenal Hub] Drawing Library is not available! ESP and aimbot visuals will not work.")
-            -- Show notification in GUI
-            local notif = Instance.new("TextLabel")
-            notif.Text = "[Arsenal Hub] Drawing Library is not available! ESP and aimbot visuals will not work."
-            notif.Size = UDim2.new(1, 0, 0, 32)
-            notif.Position = UDim2.new(0, 0, 0, 0)
-            notif.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
-            notif.TextColor3 = Color3.fromRGB(255,255,255)
-            notif.Font = Enum.Font.GothamBold
-            notif.TextSize = 14
-            notif.Parent = MainFrame
-        end
-
-        -- Debug prints for ESP and aimbot
-        print("[Arsenal Hub] Drawing Library available:", drawingAvailable)
-
-        -- ESP Tab Content
-        local espTab = Tabs["Visuals"]
-        local espScroll = Instance.new("ScrollingFrame")
-        espScroll.Name = "ESPScroll"
-        espScroll.Size = UDim2.new(1, 0, 1, 0)
-        espScroll.Position = UDim2.new(0, 0, 0, 0)
-        espScroll.BackgroundTransparency = 1
-        espScroll.BorderSizePixel = 0
-        espScroll.ScrollBarThickness = 6
-        espScroll.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 100)
-        espScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-        espScroll.Parent = espTab
-
-        local espLayout = Instance.new("UIListLayout")
-        espLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        espLayout.Padding = UDim.new(0, 10)
-        espLayout.Parent = espScroll
-        local function updateESPCanvas()
-            espScroll.CanvasSize = UDim2.new(0, 0, 0, espLayout.AbsoluteContentSize.Y + 10)
-        end
-        espLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateESPCanvas)
-        updateESPCanvas()
-
-        local function createESPToggle(name, stateVar)
-            local btn = Instance.new("TextButton")
-            btn.Name = name .. "Toggle"
-            btn.Text = name .. ": OFF"
-            btn.Size = UDim2.new(1, -20, 0, 32)
-            btn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-            btn.TextColor3 = Color3.fromRGB(255,255,255)
-            btn.Font = Enum.Font.Gotham
-            btn.TextSize = 13
-            btn.BorderSizePixel = 0
-            btn.Parent = espScroll
-            btn.MouseButton1Click:Connect(function()
-                _G[stateVar] = not _G[stateVar]
-                btn.Text = name .. ": " .. (_G[stateVar] and "ON" or "OFF")
-            end)
-            return btn
-        end
-
-        _G.espEnabled = false
-        _G.boxESPEnabled = false
-        _G.nameESPEnabled = false
-        _G.healthbarESPEnabled = false
-        _G.dynamicScalingEnabled = false
-        _G.teamCheckEnabled = false
-        _G.colorByTeamEnabled = false
-
-        createESPToggle("ESP", "espEnabled")
-        createESPToggle("Box ESP", "boxESPEnabled")
-        createESPToggle("Name ESP", "nameESPEnabled")
-        createESPToggle("Healthbar ESP", "healthbarESPEnabled")
-        createESPToggle("Dynamic Scaling", "dynamicScalingEnabled")
-        createESPToggle("Team Check", "teamCheckEnabled")
-        createESPToggle("Color By Team", "colorByTeamEnabled")
-
-        -- ESP Drawing System
-        local espDrawings = {}
-        local function clearESP()
-            for _, drawings in pairs(espDrawings) do
-                for _, d in pairs(drawings) do
-                    if d.Remove then d:Remove() end
-                end
+        -- Hit part label
+        local hitPartLabel = Instance.new("TextLabel")
+        hitPartLabel.Text = "Hit part"
+        hitPartLabel.Font = font
+        hitPartLabel.TextSize = 15
+        hitPartLabel.TextColor3 = textColor
+        hitPartLabel.BackgroundTransparency = 1
+        hitPartLabel.Position = UDim2.new(0, 16, 0, 118)
+        hitPartLabel.Size = UDim2.new(0, 100, 0, 18)
+        hitPartLabel.TextXAlignment = Enum.TextXAlignment.Left
+        hitPartLabel.Parent = contentFrame
+        -- Dropdown select (hover)
+        local dropdownFrame = Instance.new("Frame")
+        dropdownFrame.BackgroundColor3 = sidebarInnerColor
+        dropdownFrame.BackgroundTransparency = 0
+        dropdownFrame.BorderColor3 = Color3.fromRGB(40, 80, 180)
+        dropdownFrame.BorderSizePixel = 2
+        dropdownFrame.Position = UDim2.new(0, 16, 0, 140)
+        dropdownFrame.Size = UDim2.new(0, 120, 0, 26)
+        dropdownFrame.Parent = contentFrame
+        -- Przycisk na górze (pusty lub z wybraną opcją)
+        local selectedOption = Instance.new("TextButton")
+        selectedOption.Text = hitPartCurrentOption or ""
+        selectedOption.Font = font
+        selectedOption.TextSize = 15
+        selectedOption.TextColor3 = textColor
+        selectedOption.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+        selectedOption.BackgroundTransparency = 0
+        selectedOption.Size = UDim2.new(1, 0, 1, 0)
+        selectedOption.Position = UDim2.new(0, 0, 0, 0)
+        selectedOption.AutoButtonColor = false
+        selectedOption.Parent = dropdownFrame
+        -- Lista opcji (ukryta domyślnie)
+        local optionsFrame = Instance.new("Frame")
+        optionsFrame.BackgroundColor3 = sidebarInnerColor
+        optionsFrame.BorderColor3 = Color3.fromRGB(40, 80, 180)
+        optionsFrame.BorderSizePixel = 2
+        optionsFrame.Position = UDim2.new(0, 0, 1, 0)
+        optionsFrame.Size = UDim2.new(1, 0, 0, 52)
+        optionsFrame.Visible = false
+        optionsFrame.Parent = dropdownFrame
+        -- Funkcja do aktualizacji opcji
+        local function updateDropdownOptions()
+            for _, child in ipairs(optionsFrame:GetChildren()) do
+                if child:IsA("TextButton") then child:Destroy() end
             end
-            espDrawings = {}
-        end
-
-        local function getTeamColor(plr)
-            if colorByTeamEnabled and plr.TeamColor then
-                return plr.TeamColor.Color
-            end
-            return Color3.fromRGB(255,0,0)
-        end
-
-        local function getHealthColor(health, maxHealth)
-            local percent = health / maxHealth
-            if percent > 0.5 then
-                return Color3.fromRGB(0,255,0)
-            elseif percent > 0.2 then
-                return Color3.fromRGB(255,255,0)
-            else
-                return Color3.fromRGB(255,0,0)
+            local options = {"Head", "Torso"}
+            for i, opt in ipairs(options) do
+                local btn = Instance.new("TextButton")
+                btn.Text = opt
+                btn.Font = font
+                btn.TextSize = 15
+                btn.TextColor3 = textColor
+                btn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+                btn.BackgroundTransparency = 0
+                btn.Size = UDim2.new(1, 0, 0, 26)
+                btn.Position = UDim2.new(0, 0, 0, (i-1)*26)
+                btn.AutoButtonColor = true
+                btn.Parent = optionsFrame
+                btn.MouseButton1Click:Connect(function()
+                    hitPartCurrentOption = opt
+                    selectedOption.Text = opt
+                    optionsFrame.Visible = false
+                end)
             end
         end
+        updateDropdownOptions()
+        -- Pokaz/ukryj opcje po kliknięciu
+        selectedOption.MouseButton1Click:Connect(function()
+            optionsFrame.Visible = not optionsFrame.Visible
+        end)
+        -- Nagłówek 'Checks' z linią obok, pod dropdownem
+        local checksHeader = Instance.new("TextLabel")
+        checksHeader.Text = "Checks"
+        checksHeader.Font = font
+        checksHeader.TextSize = 16
+        checksHeader.TextColor3 = textColor
+        checksHeader.BackgroundTransparency = 1
+        checksHeader.Position = UDim2.new(0, 16, 0, 176)
+        checksHeader.Size = UDim2.new(0, 80, 0, 20)
+        checksHeader.TextXAlignment = Enum.TextXAlignment.Left
+        checksHeader.Parent = contentFrame
+        local checksLine = Instance.new("Frame")
+        checksLine.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+        checksLine.BorderSizePixel = 0
+        checksLine.Position = UDim2.new(0, 16 + 80 + 8, 0, 186)
+        checksLine.Size = UDim2.new(1, -(16 + 80 + 24), 0, 2)
+        checksLine.Parent = contentFrame
+        -- Checkbox 'Team check'
+        local teamCheckbox = createCheckbox(contentFrame, "Team check", UDim2.new(0, 16, 0, 200), nil)
+        -- Checkbox 'Wall check'
+        local wallCheckbox = createCheckbox(contentFrame, "Wall check", UDim2.new(0, 16, 0, 228), nil)
+        -- Checkbox 'Show Fov Circle'
+        local fovCheckbox = createCheckbox(contentFrame, "Show Fov Circle", UDim2.new(0, 16, 0, 280), nil)
+        -- Tekst 'Fov Radius'
+        local fovRadiusLabel = Instance.new("TextLabel")
+        fovRadiusLabel.Text = "Fov Radius"
+        fovRadiusLabel.Font = font
+        fovRadiusLabel.TextSize = 15
+        fovRadiusLabel.TextColor3 = textColor
+        fovRadiusLabel.BackgroundTransparency = 1
+        fovRadiusLabel.Position = UDim2.new(0, 16, 0, 312)
+        fovRadiusLabel.Size = UDim2.new(0, 120, 0, 18)
+        fovRadiusLabel.TextXAlignment = Enum.TextXAlignment.Left
+        fovRadiusLabel.Parent = contentFrame
+        -- Suwak Fov Radius
+        local fovSliderRow = Instance.new("Frame")
+        fovSliderRow.BackgroundTransparency = 1
+        fovSliderRow.Size = UDim2.new(1, -32, 0, 28)
+        fovSliderRow.Position = UDim2.new(0, 16, 0, 330)
+        fovSliderRow.Parent = contentFrame
+        local fovValue = Instance.new("TextLabel")
+        fovValue.Text = "60/400"
+        fovValue.Font = font
+        fovValue.TextSize = 15
+        fovValue.TextColor3 = textColor
+        fovValue.BackgroundTransparency = 1
+        fovValue.Position = UDim2.new(1, -48, 0, 0)
+        fovValue.Size = UDim2.new(0, 48, 0, 18)
+        fovValue.TextXAlignment = Enum.TextXAlignment.Right
+        fovValue.Parent = fovSliderRow
+        local fovSliderFrame = Instance.new("Frame")
+        fovSliderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+        fovSliderFrame.BorderColor3 = Color3.fromRGB(60, 60, 70)
+        fovSliderFrame.BorderSizePixel = 1
+        fovSliderFrame.Position = UDim2.new(0, 0, 0, 18)
+        fovSliderFrame.Size = UDim2.new(1, 0, 0, 10)
+        fovSliderFrame.Parent = fovSliderRow
+        local fovSliderFill = Instance.new("Frame")
+        fovSliderFill.BackgroundColor3 = Color3.fromRGB(40, 80, 180)
+        local fovSliderGrad = Instance.new("UIGradient")
+        fovSliderGrad.Rotation = 90
+        fovSliderGrad.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(120, 180, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 80, 180))
+        }
+        fovSliderGrad.Parent = fovSliderFill
+        fovSliderFill.BorderSizePixel = 0
+        fovSliderFill.Size = UDim2.new((60-20)/(400-20), 0, 1, 0) -- domyślnie 60/400
+        fovSliderFill.Parent = fovSliderFrame
+        -- Interaktywność suwaka
+        local fovMin, fovMax = 20, 400
+        local fovRadius = 60
+        local fovDragging = false
+        local function updateFovSlider(posX)
+            local rel = math.clamp((posX - fovSliderFrame.AbsolutePosition.X) / fovSliderFrame.AbsoluteSize.X, 0, 1)
+            fovRadius = math.floor(rel * (fovMax - fovMin) + fovMin + 0.5)
+            fovSliderFill.Size = UDim2.new((fovRadius-fovMin)/(fovMax-fovMin), 0, 1, 0)
+            fovValue.Text = tostring(fovRadius).."/"..tostring(fovMax)
+        end
+        fovSliderFrame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                fovDragging = true
+                mainFrame.Draggable = false
+                updateFovSlider(input.Position.X)
+            end
+        end)
+        fovSliderFrame.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                fovDragging = false
+                mainFrame.Draggable = true
+            end
+        end)
+        game:GetService("UserInputService").InputChanged:Connect(function(input)
+            if fovDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                updateFovSlider(input.Position.X)
+            end
+        end)
+    else
+        -- Placeholder dla innych zakładek
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, 0, 1, 0)
+        label.BackgroundTransparency = 1
+        label.TextColor3 = textColor
+        label.Font = font
+        label.TextSize = 16
+        label.Text = contentLabels[tabIndex]
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.TextYAlignment = Enum.TextYAlignment.Top
+        label.Position = UDim2.new(0, 16, 0, 16)
+        label.Parent = contentFrame
+    end
+    -- Ensure all controls are visible in the scrolling area
+    contentFrame.CanvasPosition = Vector2.new(0, 0)
+    contentFrame.CanvasSize = UDim2.new(0, 0, 2, 0)
+end
 
-        local function updateESP()
-            if not drawingAvailable then return end
-            if not _G.espEnabled then clearESP() return end
-            print("[Arsenal Hub] ESP update running")
-            for _, plr in pairs(Players:GetPlayers()) do
-                if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0 then
-                    if teamCheckEnabled and plr.Team == player.Team then
-                        if espDrawings[plr] then
-                            for _, d in pairs(espDrawings[plr]) do d.Visible = false end
-                        end
-                        continue
-                    end
-                    local root = plr.Character.HumanoidRootPart
-                    local pos, onScreen = camera:WorldToViewportPoint(root.Position)
-                    if not onScreen then
-                        if espDrawings[plr] then
-                            for _, d in pairs(espDrawings[plr]) do d.Visible = false end
-                        end
-                        continue
-                    end
-                    if not espDrawings[plr] then
-                        espDrawings[plr] = {}
-                        if _G.boxESPEnabled then
-                            local box = Drawing.new("Square")
-                            box.Thickness = 2
-                            box.Filled = false
-                            box.Color = getTeamColor(plr)
-                            box.Visible = false
-                            espDrawings[plr].box = box
-                        end
-                        if _G.nameESPEnabled then
-                            local name = Drawing.new("Text")
-                            name.Size = 16
-                            name.Color = getTeamColor(plr)
-                            name.Center = true
-                            name.Outline = true
-                            name.Visible = false
-                            espDrawings[plr].name = name
-                        end
-                        if _G.healthbarESPEnabled then
-                            local bar = Drawing.new("Line")
-                            bar.Thickness = 4
-                            bar.Color = Color3.fromRGB(0,255,0)
-                            bar.Visible = false
-                            espDrawings[plr].healthbar = bar
-                        end
-                    end
-                    -- Dynamic scaling
-                    local scale = 1
-                    if _G.dynamicScalingEnabled then
-                        local dist = (camera.CFrame.Position - root.Position).Magnitude
-                        scale = math.clamp(1200 / dist, 0.5, 2)
-                    end
-                    -- Box ESP
-                    if _G.boxESPEnabled and espDrawings[plr].box then
-                        local sizeY = (plr.Character.Humanoid.HipHeight * 2 + 2) * scale * 2
-                        local sizeX = sizeY / 2
-                        espDrawings[plr].box.Size = Vector2.new(sizeX, sizeY)
-                        espDrawings[plr].box.Position = Vector2.new(pos.X - sizeX/2, pos.Y - sizeY/2)
-                        espDrawings[plr].box.Color = getTeamColor(plr)
-                        espDrawings[plr].box.Visible = true
-                    end
-                    -- Name ESP
-                    if _G.nameESPEnabled and espDrawings[plr].name then
-                        espDrawings[plr].name.Text = plr.Name
-                        espDrawings[plr].name.Position = Vector2.new(pos.X, pos.Y - 30 * scale)
-                        espDrawings[plr].name.Color = getTeamColor(plr)
-                        espDrawings[plr].name.Visible = true
-                    end
-                    -- Healthbar ESP
-                    if _G.healthbarESPEnabled and espDrawings[plr].healthbar then
-                        local health = plr.Character.Humanoid.Health
-                        local maxHealth = plr.Character.Humanoid.MaxHealth
-                        local barHeight = 40 * scale
-                        local barX = pos.X - ((plr.Character.Humanoid.HipHeight * scale) + 10)
-                        local barY1 = pos.Y - barHeight/2
-                        local barY2 = barY1 + barHeight * (health / maxHealth)
-                        espDrawings[plr].healthbar.From = Vector2.new(barX, barY2)
-                        espDrawings[plr].healthbar.To = Vector2.new(barX, barY1 + barHeight)
-                        espDrawings[plr].healthbar.Color = getHealthColor(health, maxHealth)
-                        espDrawings[plr].healthbar.Visible = true
-                    end
-                else
-                    if espDrawings[plr] then
-                        for _, d in pairs(espDrawings[plr]) do d.Visible = false end
-                    end
-                end
+-- Wywołaj na starcie
+updateContent(selectedTab)
+
+-- Zmień obsługę przełączania zakładek, by używać updateContent
+for i, btn in ipairs(tabButtons) do
+    btn.MouseButton1Click:Connect(function()
+        for j, b in ipairs(tabButtons) do
+            b.TextColor3 = (j == i) and selectedTabColor or textColor
+            for _, child in ipairs(b:GetChildren()) do
+                if child:IsA("UIGradient") then child:Destroy() end
             end
         end
+        selectedTab = i
+        updateContent(i)
+        local grad = Instance.new("UIGradient")
+        grad.Rotation = 45
+        grad.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 80, 180)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(120, 180, 255))
+        }
+        grad.Parent = btn
+    end)
+end
 
-        RunService:BindToRenderStep("ESP", Enum.RenderPriority.Camera.Value + 1, updateESP)
+-- Funkcja do ustawiania przezroczystości wszystkich dzieci rekursywnie
+local function setTransparency(obj, value)
+    -- Pomijaj contentFrame i wszystkie jego dzieci (nie ustawiaj im przezroczystości)
+    if obj:IsDescendantOf(contentFrame) and obj ~= mainFrame then
+        return
+    end
+    if obj == contentFrame or obj == logo then
+        return
+    end
+    for _, btn in ipairs(tabButtons) do
+        if obj == btn then return end
+    end
+    -- Pomijaj wszystkie checkboxy (po nazwie)
+    if obj:IsA("TextButton") and obj.Name:sub(-8) == "Checkbox" then return end
+    if obj:IsA("Frame") or obj:IsA("TextLabel") or obj:IsA("TextButton") then
+        if obj:IsA("Frame") then
+            obj.BackgroundTransparency = value
+        else
+            obj.TextTransparency = value
+            obj.BackgroundTransparency = value
+        end
+    end
+    for _, child in ipairs(obj:GetChildren()) do
+        setTransparency(child, value)
+    end
+end
 
-        -- Apply thin Gotham font to all text elements for a consistent look
-        Title.Font = Enum.Font.Gotham
-        for _, btn in pairs(TabButtons) do
-            btn.Font = Enum.Font.Gotham
+-- Funkcja fade in/out
+local function fadeGui(show, duration)
+    duration = duration or 0.3
+    local start = show and 1 or 0
+    local finish = show and 0 or 1
+    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local transparencyValue = Instance.new("NumberValue")
+    transparencyValue.Value = start
+    local tween = TweenService:Create(transparencyValue, tweenInfo, {Value = finish})
+    tween:Play()
+    transparencyValue.Changed:Connect(function(val)
+        setTransparency(mainFrame, val)
+    end)
+    tween.Completed:Connect(function()
+        if not show then
+            gui.Enabled = false
         end
-        for _, tab in pairs(Tabs) do
-            for _, child in ipairs(tab:GetDescendants()) do
-                if child:IsA("TextLabel") or child:IsA("TextButton") then
-                    child.Font = Enum.Font.Gotham
-                end
-            end
+        -- Przywracanie przezroczystości po animacji
+        sidebar.BackgroundTransparency = 1
+        contentFrame.BackgroundTransparency = 1
+        logo.BackgroundTransparency = 1
+        for _, btn in ipairs(tabButtons) do
+            btn.BackgroundTransparency = 1
         end
+        transparencyValue:Destroy()
+    end)
+    if show then
+        gui.Enabled = true
+    end
+end
+
+-- Open/Close with Right Shift (z animacją fade)
+local open = true
+gui.Enabled = open
+setTransparency(mainFrame, 0)
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        open = not open
+        if open then
+            fadeGui(true, 0.3)
+        else
+            fadeGui(false, 0.3)
+        end
+    end
+end)
+
+
 
